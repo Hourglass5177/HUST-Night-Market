@@ -11,6 +11,11 @@
 
 Docs/Videos
 
+# Agent
+.agent/
+Agent.md
+agent.md
+
 # IDE
 .vs/
 .vscode/
