@@ -17,8 +17,10 @@ namespace CampusNightMarket.Core
         public string currentWeatherId;
         // 游戏是否已经结束。
         public bool isGameOver;
-        // 游戏结束时是否胜利。
+        // 是否已经完成限期还款目标。
         public bool isWin;
+        // 是否已经进入胜利后的无尽经营模式。
+        public bool isEndlessMode;
         // 本局胜利所需目标资金。
         public int victoryTarget;
     }

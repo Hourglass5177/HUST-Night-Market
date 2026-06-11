@@ -55,6 +55,16 @@ Assets/_Project/Scripts/Turn/
 3. `MarketManager` 只维护夜市和摊位运行时数据，购买费用、升级费用和资源扣减需要后续接入 `ResourceManager` / `EconomyManager`。
 4. README 中的启动场景路径 `Assets/_Project/CampusNightMarket/Scenes/S00_Bootstrap.unity` 当前不存在，仓库目前只有 `Assets/Scenes/SampleScene.unity`。
 
+## 胜负判定规则
+
+胜负判定以 `Docs/Design/系统策划案.pdf` 为准：
+
+1. 只在限期日当天夜晚结束后进行胜负判定。
+2. 若资金不足胜利目标，进入 `GameLose`，并设置 `isGameOver = true`。
+3. 若资金达到胜利目标，进入 `GameWin` 提示阶段，但不设置游戏结束。
+4. 胜利后设置 `isEndlessMode = true`，贷款清零，确认胜利提示后可继续进入下一天并无限经营。
+5. `GameWin` 不是终局状态，只是从限期目标模式切换到无尽模式时的提示阶段。
+
 ## 下一步建议
 
 1. 让 `GameManager` 初始化 `PlayerRuntimeData`，并和贷款目标、最大天数连起来。

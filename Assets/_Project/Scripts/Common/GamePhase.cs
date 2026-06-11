@@ -19,7 +19,7 @@ namespace CampusNightMarket.Common
         NightSettlement,
         // 一天结束，推进天数并检查胜负。
         DayEnd,
-        // 胜利状态。
+        // 胜利提示阶段；胜利后游戏不结束
         GameWin,
         // 失败状态。
         GameLose

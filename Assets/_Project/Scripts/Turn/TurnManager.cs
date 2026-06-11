@@ -113,9 +113,27 @@ namespace CampusNightMarket.Turn
             if (gameManager != null)
             {
                 gameManager.AdvanceDay();
+                if (gameManager.RuntimeData.isGameOver || gameManager.RuntimeData.currentPhase == GamePhase.GameWin)
+                {
+                    return;
+                }
             }
 
             ChangePhase(GamePhase.DayStart);
+        }
+
+        // 胜利提示确认后调用，进入无尽模式下的下一天。
+        public void ContinueAfterWin()
+        {
+            if (gameManager == null)
+            {
+                return;
+            }
+
+            if (gameManager.RuntimeData.isEndlessMode && IsCurrentPhase(GamePhase.GameWin))
+            {
+                ChangePhase(GamePhase.DayStart);
+            }
         }
 
         // 检查当前阶段；未绑定 GameManager 时放行，便于早期单独测试。
