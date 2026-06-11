@@ -2,7 +2,7 @@ using System;
 
 namespace CampusNightMarket.Market
 {
-    // 夜市等级规则，对应专项设计案中的“等级-最大摊位数-升级费用-效果”表。
+    // 夜市等级规则，“等级-最大摊位数-升级费用-效果”表。
     [Serializable]
     public class MarketLevelRule
     {

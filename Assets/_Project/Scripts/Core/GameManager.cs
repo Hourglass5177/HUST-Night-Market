@@ -117,7 +117,7 @@ namespace CampusNightMarket.Core
                 return 0;
             }
 
-            return (mapConfig.initialMoney + mapConfig.loanAmount) * mapConfig.victoryMultiplier;
+            return Mathf.RoundToInt((mapConfig.initialMoney + mapConfig.loanAmount) * mapConfig.victoryMultiplier);
         }
     }
 }

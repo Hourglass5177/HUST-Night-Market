@@ -18,10 +18,10 @@ namespace CampusNightMarket.Market
         public int maxStallCount = 1;
         // 夜市中已建设的摊位列表。
         public List<StallRuntimeData> stallList = new List<StallRuntimeData>();
-        // 夜市总吸引力，由摊位、地块和口碑共同影响；当前先记录摊位基础吸引力。
-        public int totalAttraction;
-        // 夜市总卫生值，由摊位卫生属性加权得到；当前先记录摊位平均卫生值。
-        public int totalHygiene;
+        // 夜市总吸引力，由摊位、地块和口碑加权得到。
+        public float totalAttraction;
+        // 夜市总卫生值，由摊位卫生属性加权得到。
+        public float totalHygiene;
         // 剩余停业回合数，大于0时夜晚不营业。
         public int closedRounds;
     }

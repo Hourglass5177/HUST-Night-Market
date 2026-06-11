@@ -20,7 +20,7 @@ namespace CampusNightMarket.Data
         // 开局贷款金额。
         public int loanAmount = 7000;
         // 胜利目标倍率，用于计算目标资金。
-        public int victoryMultiplier = 10;
+        public float victoryMultiplier = 10f;
         // 利息结算周期，单位为天。
         public int interestInterval = 7;
         // 每期利息率。

@@ -10,9 +10,9 @@ namespace CampusNightMarket.Market
     {
         // 玩家当前拥有或系统登记的夜市运行时数据。
         [SerializeField] private List<MarketRuntimeData> markets = new List<MarketRuntimeData>();
-        // 设计案暂未给每种摊位单独最高等级，先使用统一上限。
-        [SerializeField] private int maxStallLevel = 5;
-        // 夜市等级规则，默认值来自专项设计案。
+        // 统一摊位数量上限。
+        [SerializeField] private int maxStallLevel = 4;
+        // 夜市等级规则。
         [SerializeField] private List<MarketLevelRule> levelRules = new List<MarketLevelRule>
         {
             new MarketLevelRule(1, 1, 0, "基础夜市"),
@@ -196,6 +196,7 @@ namespace CampusNightMarket.Market
         }
 
         // 当前先按摊位基础值维护汇总，后续可接入地块、口碑和事件修正。
+        // 注意：这里的算术逻辑为占位，事实上数值计算应该全部由数值系统完成。
         private void RefreshMarketSummaryAfterBuild(MarketRuntimeData marketData, StallConfig stallConfig)
         {
             marketData.totalAttraction += stallConfig.baseAttraction;
@@ -207,8 +208,8 @@ namespace CampusNightMarket.Market
                 return;
             }
 
-            int oldTotalHygiene = marketData.totalHygiene * (stallCount - 1);
-            marketData.totalHygiene = Mathf.RoundToInt((oldTotalHygiene + stallConfig.hygiene) / (float)stallCount);
+            float oldTotalHygiene = marketData.totalHygiene * (stallCount - 1);
+            marketData.totalHygiene = (oldTotalHygiene + stallConfig.hygiene) / stallCount;
         }
     }
 }

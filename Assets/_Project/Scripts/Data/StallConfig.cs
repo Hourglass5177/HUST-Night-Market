@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace CampusNightMarket.Data
 {
-    // 摊位静态配置，描述一种摊位的建造成本、收入能力和客群偏好。
+    // 摊位静态配置
     [CreateAssetMenu(fileName = "StallConfig", menuName = "Campus Night Market/Stall Config")]
     public class StallConfig : ScriptableObject
     {
@@ -22,15 +22,15 @@ namespace CampusNightMarket.Data
         // 基础客单价。
         public int basePrice;
         // 基础吸引力，用于客流分配权重。
-        public int baseAttraction;
+        public float baseAttraction;
 
         // 每晚低端食材消耗，对应设计案“食材（低:高）”中的低端部分。
         public int lowFoodCost;
         // 每晚高端食材消耗，对应设计案“食材（低:高）”中的高端部分。
         public int highFoodCost;
 
-        // 摊位卫生值，影响检查风险。
-        public int hygiene = 80;
+        // 摊位卫生值，影响检查风险和夜市平均卫生。
+        public float hygiene = 80f;
 
         // 学生偏好倍率。
         public float studentPreference = 1f;
