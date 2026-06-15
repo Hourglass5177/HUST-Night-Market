@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using CampusNightMarket.Common;
 using CampusNightMarket.Core;
+using CampusNightMarket.Map;
+using CampusNightMarket.Player;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -16,6 +19,9 @@ namespace CampusNightMarket.Turn
         // 骰子最大点数。
         [SerializeField] private int maxDiceValue = 6;
 
+        private MapManager mapManager;
+        private PlayerRuntimeData playerRuntimeData;
+
         // 阶段变化事件，UI 或调试面板可以订阅。
         public event Action<GamePhase> PhaseChanged;
         // 投骰完成事件，UI 可以订阅后展示点数。
@@ -25,6 +31,23 @@ namespace CampusNightMarket.Turn
         public int CurrentDiceValue { get; private set; }
         // 玩家本回合选择的目标地块ID。
         public string SelectedTargetTileId { get; private set; }
+        // 当前已经验证通过的移动路径。
+        public List<string> CurrentMovePath { get; private set; } = new List<string>();
+        // 当前移动需要消耗的步数。
+        public int CurrentMoveRequiredSteps { get; private set; }
+        // 当前是否处于允许投骰的阶段。
+        public bool CanRollDice
+        {
+            get { return IsCurrentPhase(GamePhase.RollDice); }
+        }
+
+        // 绑定地图和玩家数据，之后目标合法性由TurnManager内部统一检查。
+        public void ConfigureMovement(MapManager runtimeMapManager, PlayerRuntimeData playerData)
+        {
+            mapManager = runtimeMapManager;
+            playerRuntimeData = playerData;
+        }
+
 
         // 开始第一天，进入 DayStart 阶段。
         public void BeginFirstDay()
@@ -35,6 +58,12 @@ namespace CampusNightMarket.Turn
         // 进入投骰阶段，通常由“开始行动”按钮或 DayStart 后调用。
         public void StartRollDice()
         {
+            if (!IsCurrentPhase(GamePhase.DayStart))
+            {
+                Debug.LogWarning("StartRollDice ignored because current phase is not DayStart.");
+                return;
+            }
+
             ChangePhase(GamePhase.RollDice);
         }
 
@@ -44,7 +73,7 @@ namespace CampusNightMarket.Turn
             if (!IsCurrentPhase(GamePhase.RollDice))
             {
                 Debug.LogWarning("RollDice ignored because current phase is not RollDice.");
-                return CurrentDiceValue;
+                return 0;
             }
 
             CurrentDiceValue = Random.Range(minDiceValue, maxDiceValue + 1);
@@ -53,7 +82,52 @@ namespace CampusNightMarket.Turn
             return CurrentDiceValue;
         }
 
-        // 选择目标地块；目标合法性目前只检查步数，后续接入 MapManager。
+        // 选择目标地块；地图系统负责计算路径和实际步数。
+        public bool SelectMoveTarget(string targetTileId)
+        {
+            if (!IsCurrentPhase(GamePhase.ChooseMove))
+            {
+                Debug.LogWarning("SelectMoveTarget ignored because current phase is not ChooseMove.");
+                return false;
+            }
+
+            if (mapManager == null || playerRuntimeData == null)
+            {
+                Debug.LogWarning("SelectMoveTarget failed because movement dependencies are not configured.");
+                return false;
+            }
+
+            if (!mapManager.IsMoveTargetValid(
+                    playerRuntimeData.currentTileId,
+                    targetTileId,
+                    CurrentDiceValue,
+                    playerRuntimeData.energy,
+                    out int requiredSteps,
+                    out string reason))
+            {
+                Debug.LogWarning("SelectMoveTarget failed: " + reason);
+                return false;
+            }
+
+            if (!mapManager.TryGetPath(
+                    playerRuntimeData.currentTileId,
+                    targetTileId,
+                    requiredSteps,
+                    out List<string> pathTileIds))
+            {
+                Debug.LogWarning("SelectMoveTarget failed because no valid path was found.");
+                return false;
+            }
+
+            SelectedTargetTileId = targetTileId;
+            CurrentMoveRequiredSteps = requiredSteps;
+            CurrentMovePath = pathTileIds;
+            ChangePhase(GamePhase.MovePlayer);
+            return true;
+        }
+
+        // 旧原型接口，仅为已有调用保留；新代码应调用只接收targetTileId的重载。
+        [Obsolete("Use SelectMoveTarget(string targetTileId) after ConfigureMovement.")]
         public bool SelectMoveTarget(string targetTileId, int requiredSteps)
         {
             if (!IsCurrentPhase(GamePhase.ChooseMove))
@@ -68,6 +142,8 @@ namespace CampusNightMarket.Turn
             }
 
             SelectedTargetTileId = targetTileId;
+            CurrentMoveRequiredSteps = requiredSteps;
+            CurrentMovePath.Clear();
             ChangePhase(GamePhase.MovePlayer);
             return true;
         }
@@ -109,6 +185,8 @@ namespace CampusNightMarket.Turn
 
             CurrentDiceValue = 0;
             SelectedTargetTileId = string.Empty;
+            CurrentMoveRequiredSteps = 0;
+            CurrentMovePath.Clear();
 
             if (gameManager != null)
             {

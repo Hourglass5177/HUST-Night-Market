@@ -13,8 +13,6 @@ namespace CampusNightMarket.Common
         Shop,
         // 触发随机事件的地块。
         Event,
-        // 传送或交通地块。
-        Transport,
         // 预留特殊规则地块。
         Special
     }

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dbc1b90a6aa7dd4e86f22c4be112a05, type: 3}
+  m_Name: MAP_TEST
+  m_EditorClassIdentifier: 
+  mapId: MAP_TEST
+  mapName: "\u6D4B\u8BD5\u5730\u56FE"
+  startTileId: TILE_TEST_001
+  maxDay: 30
+  initialMoney: 3000
+  loanAmount: 7000
+  victoryMultiplier: 10
+  interestInterval: 7
+  interestRate: 0.1
+  tileList:
+  - {fileID: 11400000, guid: d7894bf850aca134aa965625087893a4, type: 2}
+  - {fileID: 11400000, guid: 0c907240a7fc8d84cbc3beef3c370e6f, type: 2}
+  - {fileID: 11400000, guid: d3a3715c06edc434ebd26b652c2f3fb2, type: 2}
+  - {fileID: 11400000, guid: 564b0e9b42aa29f48996c6adc2e78ef4, type: 2}
+  - {fileID: 11400000, guid: b4dfdee4d8a3f4646bb8eb1c474e6ec6, type: 2}
+  - {fileID: 11400000, guid: d59e7566395c9474e983c122318cf3fb, type: 2}
+  - {fileID: 11400000, guid: aab8d04081f07f94f83dc8d36a5abf40, type: 2}
+  - {fileID: 11400000, guid: 34ed3965413552e44b5a01374e9a8f0a, type: 2}

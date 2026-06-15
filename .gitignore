@@ -15,6 +15,10 @@ Docs/Videos
 .agent/
 Agent.md
 agent.md
+.tmp-unity-compile-check/
+.codex-compile-check.dll
+.codex-runtime-check.dll
+.codex-editor-check.dll
 
 # IDE
 .vs/
