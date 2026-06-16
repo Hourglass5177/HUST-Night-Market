@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CampusNightMarket.Common;
 using CampusNightMarket.Data;
+using CampusNightMarket.Economy;
 using CampusNightMarket.Map;
 using CampusNightMarket.Market;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace CampusNightMarket.Tiles
         [Header("系统引用")]
         [SerializeField] private MapManager mapManager;
         [SerializeField] private MarketManager marketManager;
+        [SerializeField] private EconomyManager economyManager;
 
         [Header("原型交互设置")]
         [SerializeField] private bool autoCompleteStart = true;
@@ -99,6 +101,11 @@ namespace CampusNightMarket.Tiles
             }
 
             return true;
+        }
+
+        public void SetEconomyManager(EconomyManager manager)
+        {
+            economyManager = manager;
         }
 
         public TileRuntimeData GetTileRuntimeData(string tileId)
@@ -386,6 +393,21 @@ namespace CampusNightMarket.Tiles
                 return false;
             }
 
+            if (economyManager != null)
+            {
+                if (!economyManager.PurchaseTile(currentTileConfig))
+                {
+                    reason = "经济系统拒绝购买该地块。";
+                    return false;
+                }
+
+                currentRuntimeData.owner = OwnerType.Player;
+                currentRuntimeData.isInteractionCompletedToday = true;
+                TileOwnerChanged?.Invoke(currentTileConfig.tileId, OwnerType.Player);
+                RefreshCurrentInteraction("已通过经济系统购买地块并创建夜市。");
+                return true;
+            }
+
             if (!marketManager.CanCreateMarket(currentTileConfig, out reason))
             {
                 return false;
@@ -473,7 +495,7 @@ namespace CampusNightMarket.Tiles
             {
                 if (marketManager == null ||
                     !marketManager.TryCreateMarket(
-                        currentTileConfig,
+                        currentTileConfig.tileId,
                         out MarketRuntimeData marketData))
                 {
                     pendingRequestCompletesInteraction = false;

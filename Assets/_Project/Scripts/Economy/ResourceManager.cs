@@ -1,4 +1,6 @@
+using CampusNightMarket.Common;
 using CampusNightMarket.Player;
+using CampusNightMarket.Tiles;
 using UnityEngine;
 
 namespace CampusNightMarket.Economy
@@ -10,6 +12,11 @@ namespace CampusNightMarket.Economy
     public class ResourceManager : MonoBehaviour
     {
         [SerializeField] private PlayerRuntimeData playerData;
+
+        public PlayerRuntimeData PlayerData
+        {
+            get { return playerData; }
+        }
 
         // ================================================================
         //  资金操作
@@ -261,6 +268,77 @@ namespace CampusNightMarket.Economy
         public void SetPlayerData(PlayerRuntimeData data)
         {
             playerData = data;
+        }
+
+        public bool TryApplyResourceRequest(TileResourceRequest request, out string message)
+        {
+            message = string.Empty;
+            if (request == null)
+            {
+                message = "资源请求为空。";
+                return false;
+            }
+
+            if (request.amount < 0)
+            {
+                message = "资源请求数量不能为负数。";
+                return false;
+            }
+
+            bool succeeded = request.requestType == TileResourceRequestType.Spend
+                ? TrySpend(request.resourceType, request.amount)
+                : TryGrant(request.resourceType, request.amount);
+
+            message = succeeded
+                ? "ResourceManager处理成功：" + request.requestType + " " +
+                  request.resourceType + " x" + request.amount
+                : "ResourceManager处理失败：" + request.requestType + " " +
+                  request.resourceType + " x" + request.amount;
+
+            return succeeded;
+        }
+
+        private bool TrySpend(ResourceType resourceType, int amount)
+        {
+            switch (resourceType)
+            {
+                case ResourceType.Money:
+                    return SpendMoney(amount);
+                case ResourceType.LowFood:
+                    return ConsumeLowFood(amount);
+                case ResourceType.HighFood:
+                    return ConsumeHighFood(amount);
+                case ResourceType.Energy:
+                    return ConsumeEnergy(amount);
+                default:
+                    Debug.LogWarning("ResourceManager.TrySpend does not support " + resourceType);
+                    return false;
+            }
+        }
+
+        private bool TryGrant(ResourceType resourceType, int amount)
+        {
+            switch (resourceType)
+            {
+                case ResourceType.Money:
+                    AddMoney(amount);
+                    return true;
+                case ResourceType.LowFood:
+                    AddLowFood(amount);
+                    return true;
+                case ResourceType.HighFood:
+                    AddHighFood(amount);
+                    return true;
+                case ResourceType.Reputation:
+                    AddReputation(amount);
+                    return true;
+                case ResourceType.Energy:
+                    RestoreEnergy(amount);
+                    return true;
+                default:
+                    Debug.LogWarning("ResourceManager.TryGrant does not support " + resourceType);
+                    return false;
+            }
         }
     }
 }

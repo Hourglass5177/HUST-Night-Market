@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using CampusNightMarket.Core;
 using CampusNightMarket.Data;
+using CampusNightMarket.Economy;
 using CampusNightMarket.Map;
+using CampusNightMarket.Market;
 using CampusNightMarket.Player;
 using CampusNightMarket.Tiles;
 using CampusNightMarket.Turn;
@@ -17,6 +19,9 @@ public class PrototypeBootstrap : MonoBehaviour
     [SerializeField] private MapManager mapManager;
     [SerializeField] private TileManager tileManager;
     [SerializeField] private PlayerMover playerMover;
+    [SerializeField] private ResourceManager resourceManager;
+    [SerializeField] private EconomyManager economyManager;
+    [SerializeField] private MarketManager marketManager;
 
     [Header("原型配置")]
     [SerializeField] private MapConfig mapConfig;
@@ -30,10 +35,15 @@ public class PrototypeBootstrap : MonoBehaviour
     [Header("场景地块")]
     [SerializeField] private List<TileView> tileViews = new List<TileView>();
 
+    [Header("摊位测试配置")]
+    [SerializeField] private List<StallConfig> stallConfigs = new List<StallConfig>();
+
     private readonly Dictionary<string, ReachableTileResult> reachableTiles =
         new Dictionary<string, ReachableTileResult>();
     private PlayerRuntimeData playerData;
     private string statusMessage = "等待初始化";
+    private string lastNightSettlementSummary = "上一晚结算：尚未发生";
+    private Vector2 debugScrollPosition;
 
     public PlayerRuntimeData PlayerData
     {
@@ -81,6 +91,7 @@ public class PrototypeBootstrap : MonoBehaviour
             nextInterestDay = mapConfig.interestInterval
         };
 
+        BindEconomySystems();
         gameManager.InitializeNewGame(mapConfig, playerData);
         turnManager.ConfigureMovement(mapManager, playerData);
         RegisterTileViews();
@@ -212,7 +223,12 @@ public class PrototypeBootstrap : MonoBehaviour
 
         int requiredSteps = turnManager.CurrentMoveRequiredSteps;
         List<string> movePath = turnManager.CurrentMovePath;
-        playerData.energy -= requiredSteps;
+        if (!ConsumeMoveEnergy(requiredSteps))
+        {
+            statusMessage = "体力不足，无法移动。";
+            return;
+        }
+
         tileView.SetSelected(true);
         statusMessage = "正在移动到 " + result.tileId;
 
@@ -223,7 +239,7 @@ public class PrototypeBootstrap : MonoBehaviour
 
         if (!started)
         {
-            playerData.energy += requiredSteps;
+            RestoreMoveEnergy(requiredSteps);
             statusMessage = "玩家移动启动失败。";
         }
     }
@@ -252,7 +268,9 @@ public class PrototypeBootstrap : MonoBehaviour
         reachableTiles.Clear();
         mapManager.ClearTileHighlights();
         turnManager.NotifyTileInteractionFinished();
+        RunPrototypeNightSettlement();
         turnManager.NotifyNightSettlementFinished();
+        ProcessPrototypeLoanInterest();
         turnManager.EndDay();
 
         if (gameManager.RuntimeData.currentPhase == CampusNightMarket.Common.GamePhase.GameWin)
@@ -267,13 +285,74 @@ public class PrototypeBootstrap : MonoBehaviour
             return;
         }
 
-        playerData.energy = playerData.maxEnergy;
+        RestoreEnergyToFull();
         tileManager.ResetDailyInteractionState();
         turnManager.StartRollDice();
 
         statusMessage =
             "原型回合已推进。当前位置：" + playerData.currentTileId +
             "，按空格继续投骰。";
+    }
+
+    private void RunPrototypeNightSettlement()
+    {
+        if (playerData == null)
+        {
+            lastNightSettlementSummary = "上一晚结算：玩家数据为空";
+            return;
+        }
+
+        int moneyBefore = playerData.money;
+        int lowFoodBefore = playerData.lowFood;
+        int highFoodBefore = playerData.highFood;
+        int marketCount = marketManager == null || marketManager.Markets == null
+            ? 0
+            : marketManager.Markets.Count;
+
+        if (economyManager != null)
+        {
+            economyManager.SettleAllMarketsNightIncome();
+        }
+        else
+        {
+            lastNightSettlementSummary = "上一晚结算：未绑定EconomyManager";
+            return;
+        }
+
+        if (marketManager != null)
+        {
+            marketManager.AdvanceClosedRounds();
+        }
+
+        int moneyDelta = playerData.money - moneyBefore;
+        int lowFoodDelta = playerData.lowFood - lowFoodBefore;
+        int highFoodDelta = playerData.highFood - highFoodBefore;
+        lastNightSettlementSummary =
+            "上一晚结算：夜市" + marketCount +
+            "，资金 " + FormatSigned(moneyDelta) +
+            "，低端食材 " + FormatSigned(lowFoodDelta) +
+            "，高端食材 " + FormatSigned(highFoodDelta);
+    }
+
+    private string FormatSigned(int value)
+    {
+        return value >= 0 ? "+" + value : value.ToString();
+    }
+
+    private void ProcessPrototypeLoanInterest()
+    {
+        if (economyManager == null ||
+            gameManager == null ||
+            mapConfig == null ||
+            gameManager.RuntimeData == null)
+        {
+            return;
+        }
+
+        economyManager.ProcessLoanInterest(
+            gameManager.RuntimeData.currentDay,
+            mapConfig.interestInterval,
+            mapConfig.interestRate);
     }
 
     private bool CanRollDice()
@@ -287,6 +366,86 @@ public class PrototypeBootstrap : MonoBehaviour
                turnManager.CanRollDice;
     }
 
+    private void BindEconomySystems()
+    {
+        if (resourceManager == null)
+        {
+            resourceManager = FindObjectOfType<ResourceManager>();
+        }
+
+        if (economyManager == null)
+        {
+            economyManager = FindObjectOfType<EconomyManager>();
+        }
+
+        if (marketManager == null)
+        {
+            marketManager = FindObjectOfType<MarketManager>();
+        }
+
+        if (resourceManager != null)
+        {
+            resourceManager.SetPlayerData(playerData);
+        }
+
+        if (marketManager != null)
+        {
+            marketManager.SetResourceManager(resourceManager);
+        }
+
+        if (economyManager != null)
+        {
+            economyManager.SetResourceManager(resourceManager);
+            economyManager.SetMarketManager(marketManager);
+            economyManager.SetGameManager(gameManager);
+            economyManager.SetTileConfigs(mapConfig.tileList);
+            economyManager.SetStallConfigs(stallConfigs);
+        }
+
+        if (tileManager != null)
+        {
+            tileManager.SetEconomyManager(economyManager);
+        }
+    }
+
+    private bool ConsumeMoveEnergy(int amount)
+    {
+        if (resourceManager != null)
+        {
+            return resourceManager.ConsumeEnergy(amount);
+        }
+
+        if (playerData.energy < amount)
+        {
+            return false;
+        }
+
+        playerData.energy -= amount;
+        return true;
+    }
+
+    private void RestoreMoveEnergy(int amount)
+    {
+        if (resourceManager != null)
+        {
+            resourceManager.RestoreEnergy(amount);
+            return;
+        }
+
+        playerData.energy = Mathf.Min(playerData.energy + amount, playerData.maxEnergy);
+    }
+
+    private void RestoreEnergyToFull()
+    {
+        if (resourceManager != null)
+        {
+            resourceManager.RestoreEnergy(playerData.maxEnergy);
+            return;
+        }
+
+        playerData.energy = playerData.maxEnergy;
+    }
+
     public void ContinueAfterWin()
     {
         if (gameManager == null ||
@@ -297,7 +456,7 @@ public class PrototypeBootstrap : MonoBehaviour
         }
 
         turnManager.ContinueAfterWin();
-        playerData.energy = playerData.maxEnergy;
+        RestoreEnergyToFull();
         tileManager.ResetDailyInteractionState();
         turnManager.StartRollDice();
         statusMessage = "已进入无尽模式，可以继续投骰。";
@@ -379,6 +538,15 @@ public class PrototypeBootstrap : MonoBehaviour
             "资源请求占位：" + request.requestType + " " +
             request.resourceType + " x" + request.amount;
 
+        if (resourceManager != null)
+        {
+            bool succeeded = resourceManager.TryApplyResourceRequest(
+                request,
+                out string message);
+            tileManager.ResolvePendingResourceRequest(succeeded, message);
+            return;
+        }
+
         if (autoResolvePlaceholderResourceRequests)
         {
             tileManager.ResolvePendingResourceRequest(
@@ -399,6 +567,94 @@ public class PrototypeBootstrap : MonoBehaviour
                 tileView.SetOwner(tileManager.GetTileOwner(tileConfig.tileId));
             }
         }
+    }
+
+    private MarketRuntimeData GetCurrentMarket()
+    {
+        return marketManager == null || playerData == null
+            ? null
+            : marketManager.GetMarket(playerData.currentTileId);
+    }
+
+    private StallConfig GetFirstAvailableStallConfig()
+    {
+        if (stallConfigs == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < stallConfigs.Count; i++)
+        {
+            if (stallConfigs[i] != null)
+            {
+                return stallConfigs[i];
+            }
+        }
+
+        return null;
+    }
+
+    private StallConfig FindStallConfig(string stallId)
+    {
+        if (stallConfigs == null || string.IsNullOrEmpty(stallId))
+        {
+            return null;
+        }
+
+        for (int i = 0; i < stallConfigs.Count; i++)
+        {
+            if (stallConfigs[i] != null && stallConfigs[i].stallId == stallId)
+            {
+                return stallConfigs[i];
+            }
+        }
+
+        return null;
+    }
+
+    private void BuildTestStall(StallConfig stallConfig)
+    {
+        if (economyManager == null || playerData == null || stallConfig == null)
+        {
+            statusMessage = "摊位测试失败：缺少EconomyManager、玩家数据或StallConfig。";
+            return;
+        }
+
+        bool succeeded = economyManager.BuildStallTransaction(
+            playerData.currentTileId,
+            stallConfig);
+        statusMessage = succeeded
+            ? "已建设摊位：" + stallConfig.stallName
+            : "建设摊位失败，请看Console中的原因。";
+    }
+
+    private void UpgradeFirstStall()
+    {
+        MarketRuntimeData marketData = GetCurrentMarket();
+        if (economyManager == null ||
+            marketData == null ||
+            marketData.stallList == null ||
+            marketData.stallList.Count == 0)
+        {
+            statusMessage = "摊位升级失败：当前夜市没有摊位。";
+            return;
+        }
+
+        StallRuntimeData stallData = marketData.stallList[0];
+        StallConfig stallConfig = FindStallConfig(stallData.stallId);
+        if (stallConfig == null)
+        {
+            statusMessage = "摊位升级失败：找不到摊位配置 " + stallData.stallId;
+            return;
+        }
+
+        bool succeeded = economyManager.UpgradeStallTransaction(
+            marketData.tileId,
+            stallData.stallId,
+            stallConfig);
+        statusMessage = succeeded
+            ? "已升级摊位：" + stallConfig.stallName
+            : "升级摊位失败，请看Console中的原因。";
     }
 
     private void ExecuteTileAction(TileActionType action)
@@ -441,9 +697,19 @@ public class PrototypeBootstrap : MonoBehaviour
             return;
         }
 
-        GUILayout.BeginArea(new Rect(16f, 16f, 420f, 420f), GUI.skin.box);
+        GUILayout.BeginArea(new Rect(16f, 16f, 460f, Screen.height - 32f), GUI.skin.box);
+        debugScrollPosition = GUILayout.BeginScrollView(debugScrollPosition);
         GUILayout.Label("地图与地块系统原型");
+        if (gameManager != null && gameManager.RuntimeData != null)
+        {
+            GUILayout.Label(
+                "第 " + gameManager.RuntimeData.currentDay +
+                " 天 / 阶段：" + gameManager.RuntimeData.currentPhase);
+        }
+
+        GUILayout.Label("每日规则：一次掷骰移动 + 一次落地交互，结束交互后进入夜晚结算。");
         GUILayout.Label(statusMessage);
+        GUILayout.Label(lastNightSettlementSummary);
 
         if (playerData != null)
         {
@@ -454,6 +720,38 @@ public class PrototypeBootstrap : MonoBehaviour
                 "食材：低端 " + playerData.lowFood +
                 " / 高端 " + playerData.highFood);
             GUILayout.Label("口碑：" + playerData.reputation);
+        }
+
+        MarketRuntimeData currentMarket = GetCurrentMarket();
+        if (currentMarket != null)
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label(
+                "当前夜市：Lv." + currentMarket.marketLevel +
+                " 摊位 " + currentMarket.stallList.Count +
+                "/" + currentMarket.maxStallCount);
+            GUILayout.Label(
+                "吸引力：" + currentMarket.totalAttraction.ToString("0.0") +
+                " 卫生：" + currentMarket.totalHygiene.ToString("0.0"));
+
+            StallConfig defaultStall = GetFirstAvailableStallConfig();
+            GUI.enabled = defaultStall != null;
+            if (GUILayout.Button(
+                    defaultStall == null
+                        ? "没有可用StallConfig"
+                        : "建设摊位：" + defaultStall.stallName +
+                          "（" + defaultStall.buildCost + "）"))
+            {
+                BuildTestStall(defaultStall);
+            }
+
+            GUI.enabled = currentMarket.stallList.Count > 0;
+            if (GUILayout.Button("升级第一个摊位"))
+            {
+                UpgradeFirstStall();
+            }
+
+            GUI.enabled = true;
         }
 
         TileInteractionInfo interactionInfo =
@@ -511,6 +809,7 @@ public class PrototypeBootstrap : MonoBehaviour
         }
 
         GUI.enabled = true;
+        GUILayout.EndScrollView();
         GUILayout.EndArea();
     }
 }

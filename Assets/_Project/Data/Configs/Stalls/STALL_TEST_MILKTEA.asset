@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6436c6f855907a4f84e3405560510e8, type: 3}
+  m_Name: STALL_TEST_MILKTEA
+  m_EditorClassIdentifier: 
+  stallId: STALL_TEST_MILKTEA
+  stallName: Test Milk Tea Store
+  stallType: 1
+  buildCost: 2000
+  upgradeCost: 1000
+  basePrice: 30
+  baseAttraction: 25
+  lowFoodCost: 3
+  highFoodCost: 1
+  hygiene: 86
+  studentPreference: 1.8
+  teacherPreference: 0.8
+  touristPreference: 1.3
+  residentPreference: 0.6
+  unlockMarketLevel: 1

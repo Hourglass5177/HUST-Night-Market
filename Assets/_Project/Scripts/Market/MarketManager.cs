@@ -30,6 +30,11 @@ namespace CampusNightMarket.Market
             get { return markets; }
         }
 
+        public void SetResourceManager(ResourceManager manager)
+        {
+            resourceManager = manager;
+        }
+
         // 根据地块配置创建夜市；正式流程应优先使用这个接口。
         public bool TryCreateMarket(TileConfig tileConfig, out MarketRuntimeData marketData)
         {
@@ -209,6 +214,32 @@ namespace CampusNightMarket.Market
         }
 
         // 检查指定夜市是否可以建设该摊位。
+        public bool BuildStallAfterPayment(string tileId, StallConfig stallConfig)
+        {
+            MarketRuntimeData marketData = GetMarket(tileId);
+            if (marketData == null || stallConfig == null)
+            {
+                return false;
+            }
+
+            if (marketData.closedRounds > 0 ||
+                marketData.stallList.Count >= marketData.maxStallCount ||
+                marketData.marketLevel < stallConfig.unlockMarketLevel)
+            {
+                return false;
+            }
+
+            StallRuntimeData stallData = new StallRuntimeData
+            {
+                stallId = stallConfig.stallId,
+                level = 1
+            };
+
+            marketData.stallList.Add(stallData);
+            RefreshMarketSummaryAfterBuild(marketData, stallConfig);
+            return true;
+        }
+
         public bool CanBuildStall(MarketRuntimeData marketData, StallConfig stallConfig, out string reason)
         {
             reason = string.Empty;

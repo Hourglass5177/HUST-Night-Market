@@ -373,7 +373,7 @@ namespace CampusNightMarket.Economy
             }
 
             // Step 3: 建设
-            if (!marketManager.BuildStall(tileId, stallConfig))
+            if (!marketManager.BuildStallAfterPayment(tileId, stallConfig))
             {
                 // 建设失败退还费用
                 resourceManager.AddMoney(stallConfig.buildCost);
@@ -415,19 +415,9 @@ namespace CampusNightMarket.Economy
                 return false;
             }
 
-            // Step 3: 扣费
-            if (!resourceManager.SpendMoney(upgradeCost))
-            {
-                Debug.LogWarning("EconomyManager.UpgradeStallTransaction failed: insufficient money for upgrade.");
-                return false;
-            }
-
-            // Step 4: 升级
             if (!marketManager.UpgradeStall(tileId, stallId, stallConfig))
             {
-                // 升级失败退还费用
-                resourceManager.AddMoney(upgradeCost);
-                Debug.LogError("EconomyManager.UpgradeStallTransaction failed: UpgradeStall returned false, money refunded.");
+                Debug.LogError("EconomyManager.UpgradeStallTransaction failed: UpgradeStall returned false.");
                 return false;
             }
 
@@ -464,18 +454,9 @@ namespace CampusNightMarket.Economy
                 return false;
             }
 
-            // Step 3: 扣费
-            if (!resourceManager.SpendMoney(upgradeCost))
-            {
-                Debug.LogWarning("EconomyManager.UpgradeMarketTransaction failed: insufficient money for upgrade.");
-                return false;
-            }
-
-            // Step 4: 升级
             if (!marketManager.UpgradeMarket(tileId))
             {
-                resourceManager.AddMoney(upgradeCost);
-                Debug.LogError("EconomyManager.UpgradeMarketTransaction failed: UpgradeMarket returned false, money refunded.");
+                Debug.LogError("EconomyManager.UpgradeMarketTransaction failed: UpgradeMarket returned false.");
                 return false;
             }
 
@@ -499,7 +480,7 @@ namespace CampusNightMarket.Economy
 
             // 如果 ResourceManager 有公开 playerData 的需求，可以在这里读取。
             // 当前方案：各个系统直接读取 PlayerRuntimeData 的公开字段。
-            return null;
+            return resourceManager == null ? null : resourceManager.PlayerData;
         }
 
         /// <summary>在夜市内查找摊位运行时数据。</summary>

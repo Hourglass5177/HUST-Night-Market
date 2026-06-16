@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6436c6f855907a4f84e3405560510e8, type: 3}
+  m_Name: STALL_TEST_BBQ
+  m_EditorClassIdentifier: 
+  stallId: STALL_TEST_BBQ
+  stallName: Test BBQ Stall
+  stallType: 0
+  buildCost: 500
+  upgradeCost: 300
+  basePrice: 15
+  baseAttraction: 10
+  lowFoodCost: 2
+  highFoodCost: 0
+  hygiene: 80
+  studentPreference: 1.5
+  teacherPreference: 0.6
+  touristPreference: 1.2
+  residentPreference: 0.8
+  unlockMarketLevel: 1
