@@ -49,6 +49,8 @@ namespace CampusNightMarket.Data
 
         // 资源地块的产出类型。
         public ResourceType resourceType;
+        [Min(0)]
+        public int resourceAmount = 1;
         // 到达地块时使用的事件池ID。
         public string eventPoolId;
     }

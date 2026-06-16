@@ -15,13 +15,6 @@ namespace CampusNightMarket.Tiles
         [SerializeField] private MapManager mapManager;
         [SerializeField] private MarketManager marketManager;
 
-        [Header("原型资源地块奖励")]
-        [SerializeField] private int moneyReward = 300;
-        [SerializeField] private int lowFoodReward = 3;
-        [SerializeField] private int highFoodReward = 1;
-        [SerializeField] private int reputationReward = 5;
-        [SerializeField] private int energyReward = 2;
-
         [Header("原型交互设置")]
         [SerializeField] private bool autoCompleteStart = true;
         [SerializeField] private bool autoCompleteResource = true;
@@ -184,7 +177,9 @@ namespace CampusNightMarket.Tiles
                     }
                     else
                     {
-                        info.message = "可以收集：" + GetResourceDisplayName(tileConfig.resourceType);
+                        info.message =
+                            "可以收集：" + GetResourceDisplayName(tileConfig.resourceType) +
+                            " x" + Mathf.Max(0, tileConfig.resourceAmount);
                         info.availableActions.Add(TileActionType.CollectResource);
                         info.availableActions.Add(TileActionType.CompleteInteraction);
                     }
@@ -429,27 +424,17 @@ namespace CampusNightMarket.Tiles
                 return false;
             }
 
-            int amount;
-            switch (currentTileConfig.resourceType)
+            if (currentTileConfig.resourceType == ResourceType.None)
             {
-                case ResourceType.Money:
-                    amount = Mathf.Max(0, moneyReward);
-                    break;
-                case ResourceType.LowFood:
-                    amount = Mathf.Max(0, lowFoodReward);
-                    break;
-                case ResourceType.HighFood:
-                    amount = Mathf.Max(0, highFoodReward);
-                    break;
-                case ResourceType.Reputation:
-                    amount = Mathf.Max(0, reputationReward);
-                    break;
-                case ResourceType.Energy:
-                    amount = Mathf.Max(0, energyReward);
-                    break;
-                default:
-                    reason = "资源类型未配置。";
-                    return false;
+                reason = "资源类型未配置。";
+                return false;
+            }
+
+            int amount = Mathf.Max(0, currentTileConfig.resourceAmount);
+            if (amount <= 0)
+            {
+                reason = "资源数量需要大于0。";
+                return false;
             }
 
             pendingRequestCreatesMarket = false;
