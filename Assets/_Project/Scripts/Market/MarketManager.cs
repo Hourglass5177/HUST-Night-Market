@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CampusNightMarket.Common;
 using CampusNightMarket.Data;
+using CampusNightMarket.Economy;
 using UnityEngine;
 
 namespace CampusNightMarket.Market
@@ -12,6 +13,8 @@ namespace CampusNightMarket.Market
         [SerializeField] private List<MarketRuntimeData> markets = new List<MarketRuntimeData>();
         // 摊位统一等级上限；后续如策划给出不同摊位上限，可移动到 StallConfig。
         [SerializeField] private int maxStallLevel = 4;
+        // 资源管理器引用，用于 CheckMoney / SpendMoney。
+        [SerializeField] private ResourceManager resourceManager;
         // 夜市等级规则。
         [SerializeField] private List<MarketLevelRule> levelRules = new List<MarketLevelRule>
         {
@@ -38,8 +41,13 @@ namespace CampusNightMarket.Market
                 return false;
             }
 
-            // 这里需要 ResourceManager.SpendMoney(tileConfig.purchasePrice) 扣除购买地块/建设夜市费用。
-            // 如果扣费失败，应返回 false，避免创建夜市。
+            // 扣除购买地块/建设夜市费用；如果扣费失败，返回 false，避免创建夜市。
+            if (resourceManager != null && !resourceManager.SpendMoney(tileConfig.purchasePrice))
+            {
+                Debug.LogWarning("Create market failed: insufficient money for purchase.");
+                return false;
+            }
+
             return TryCreateMarket(tileConfig.tileId, out marketData);
         }
 
@@ -94,7 +102,13 @@ namespace CampusNightMarket.Market
                 return false;
             }
 
-            // 这里需要 ResourceManager.CheckMoney(tileConfig.purchasePrice) 判断玩家资金是否足够。
+            // 判断玩家资金是否足够购买该地块。
+            if (resourceManager != null && !resourceManager.CheckMoney(tileConfig.purchasePrice))
+            {
+                reason = "资金不足，无法购买该地块。";
+                return false;
+            }
+
             return true;
         }
 
@@ -128,8 +142,13 @@ namespace CampusNightMarket.Market
                 return false;
             }
 
-            // 这里需要 ResourceManager.SpendMoney(upgradeCost) 扣除夜市升级费用。
-            // 如果扣费失败，应返回 false，避免升级夜市。
+            // 扣除夜市升级费用；如果扣费失败，返回 false，避免升级夜市。
+            if (resourceManager != null && !resourceManager.SpendMoney(upgradeCost))
+            {
+                Debug.LogWarning("Upgrade market failed: insufficient money for upgrade.");
+                return false;
+            }
+
             MarketLevelRule nextRule = GetNextLevelRule(marketData);
 
             marketData.marketLevel = nextRule.level;
@@ -157,11 +176,18 @@ namespace CampusNightMarket.Market
             }
 
             upgradeCost = nextRule.upgradeCost;
-            // 这里需要 ResourceManager.CheckMoney(upgradeCost) 判断玩家资金是否足够。
+
+            // 判断玩家资金是否足够支付升级费用。
+            if (resourceManager != null && !resourceManager.CheckMoney(upgradeCost))
+            {
+                reason = "资金不足，无法升级夜市。";
+                return false;
+            }
+
             return true;
         }
 
-        // 在指定夜市中建设一个新摊位；资源扣费后续接入 ResourceManager。
+        // 在指定夜市中建设一个新摊位；资源扣费由外部 EconomyManager 或调用方负责。
         public bool BuildStall(string tileId, StallConfig stallConfig)
         {
             MarketRuntimeData marketData = GetMarket(tileId);
@@ -171,8 +197,6 @@ namespace CampusNightMarket.Market
                 return false;
             }
 
-            // 这里需要 ResourceManager.SpendMoney(stallConfig.buildCost) 扣除摊位建设费用。
-            // 如果扣费失败，应返回 false，避免新增摊位。
             StallRuntimeData stallData = new StallRuntimeData
             {
                 stallId = stallConfig.stallId,
@@ -225,7 +249,13 @@ namespace CampusNightMarket.Market
                 return false;
             }
 
-            // 这里需要 ResourceManager.CheckMoney(stallConfig.buildCost) 判断玩家资金是否足够。
+            // 判断玩家资金是否足够支付建设费用。
+            if (resourceManager != null && !resourceManager.CheckMoney(stallConfig.buildCost))
+            {
+                reason = "资金不足，无法建设该摊位。";
+                return false;
+            }
+
             return true;
         }
 
@@ -240,8 +270,14 @@ namespace CampusNightMarket.Market
                 return false;
             }
 
-            // 这里需要 ResourceManager.SpendMoney(GetStallUpgradeCost(stallData, stallConfig)) 扣除摊位升级费用。
-            // 如果扣费失败，应返回 false，避免升级摊位。
+            // 扣除摊位升级费用；如果扣费失败，返回 false，避免升级摊位。
+            int upgradeCost = GetStallUpgradeCost(stallData, stallConfig);
+            if (resourceManager != null && !resourceManager.SpendMoney(upgradeCost))
+            {
+                Debug.LogWarning("Upgrade stall failed: insufficient money for upgrade.");
+                return false;
+            }
+
             float oldAttraction = stallConfig.baseAttraction * GetStallLevelCoefficient(stallData.level);
             stallData.level += 1;
             ApplyStallUpgradeSummaryDelta(marketData, stallConfig, oldAttraction, stallData.level);
@@ -283,7 +319,14 @@ namespace CampusNightMarket.Market
                 return false;
             }
 
-            // 这里需要 ResourceManager.CheckMoney(GetStallUpgradeCost(stallData, stallConfig)) 判断玩家资金是否足够。
+            // 判断玩家资金是否足够支付升级费用。
+            int upgradeCost = GetStallUpgradeCost(stallData, stallConfig);
+            if (resourceManager != null && !resourceManager.CheckMoney(upgradeCost))
+            {
+                reason = "资金不足，无法升级该摊位。";
+                return false;
+            }
+
             return true;
         }
 
