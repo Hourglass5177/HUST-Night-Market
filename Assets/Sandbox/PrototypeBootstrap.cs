@@ -576,24 +576,6 @@ public class PrototypeBootstrap : MonoBehaviour
             : marketManager.GetMarket(playerData.currentTileId);
     }
 
-    private StallConfig GetFirstAvailableStallConfig()
-    {
-        if (stallConfigs == null)
-        {
-            return null;
-        }
-
-        for (int i = 0; i < stallConfigs.Count; i++)
-        {
-            if (stallConfigs[i] != null)
-            {
-                return stallConfigs[i];
-            }
-        }
-
-        return null;
-    }
-
     private StallConfig FindStallConfig(string stallId)
     {
         if (stallConfigs == null || string.IsNullOrEmpty(stallId))
@@ -734,15 +716,39 @@ public class PrototypeBootstrap : MonoBehaviour
                 "吸引力：" + currentMarket.totalAttraction.ToString("0.0") +
                 " 卫生：" + currentMarket.totalHygiene.ToString("0.0"));
 
-            StallConfig defaultStall = GetFirstAvailableStallConfig();
-            GUI.enabled = defaultStall != null;
-            if (GUILayout.Button(
-                    defaultStall == null
-                        ? "没有可用StallConfig"
-                        : "建设摊位：" + defaultStall.stallName +
-                          "（" + defaultStall.buildCost + "）"))
+            GUILayout.Label("可建设摊位：");
+            bool hasStallConfig = false;
+            if (stallConfigs != null)
             {
-                BuildTestStall(defaultStall);
+                for (int i = 0; i < stallConfigs.Count; i++)
+                {
+                    StallConfig stallConfig = stallConfigs[i];
+                    if (stallConfig == null)
+                    {
+                        continue;
+                    }
+
+                    hasStallConfig = true;
+                    bool canTryBuild =
+                        currentMarket.stallList.Count < currentMarket.maxStallCount &&
+                        currentMarket.marketLevel >= stallConfig.unlockMarketLevel;
+
+                    GUI.enabled = canTryBuild;
+                    if (GUILayout.Button(
+                            stallConfig.stallName +
+                            " / " + stallConfig.stallId +
+                            "（建造 " + stallConfig.buildCost +
+                            "，解锁Lv." + stallConfig.unlockMarketLevel + "）"))
+                    {
+                        BuildTestStall(stallConfig);
+                    }
+                }
+            }
+
+            if (!hasStallConfig)
+            {
+                GUI.enabled = false;
+                GUILayout.Button("没有可用StallConfig，请在PrototypeBootstrap里拖入摊位配置");
             }
 
             GUI.enabled = currentMarket.stallList.Count > 0;
