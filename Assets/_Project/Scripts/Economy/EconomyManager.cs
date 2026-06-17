@@ -4,6 +4,7 @@ using CampusNightMarket.Core;
 using CampusNightMarket.Data;
 using CampusNightMarket.Market;
 using CampusNightMarket.Player;
+using CampusNightMarket.RandomSystem;
 using UnityEngine;
 
 namespace CampusNightMarket.Economy
@@ -18,6 +19,7 @@ namespace CampusNightMarket.Economy
         [SerializeField] private ResourceManager resourceManager;
         [SerializeField] private MarketManager marketManager;
         [SerializeField] private GameManager gameManager;
+        [SerializeField] private WeatherManager weatherManager;
 
         [Header("配置数据（正式版可改用 DataManager 统一读取）")]
         [SerializeField] private List<TileConfig> tileConfigs;
@@ -95,7 +97,10 @@ namespace CampusNightMarket.Economy
             float trafficMultiplier = marketManager != null
                 ? marketManager.GetTrafficCapacityMultiplier(market)
                 : 1f;
-            float totalTraffic = baseTraffic * trafficMultiplier;
+            float weatherTrafficMultiplier = weatherManager != null
+                ? weatherManager.GetTrafficModifier()
+                : 1f;
+            float totalTraffic = baseTraffic * trafficMultiplier * weatherTrafficMultiplier;
 
             if (totalTraffic <= 0f)
             {
@@ -138,7 +143,13 @@ namespace CampusNightMarket.Economy
                 float effectiveTraffic = trafficShare * preferenceMultiplier;
 
                 // === 计算收入 ===
-                float revenue = effectiveTraffic * stallConfig.basePrice * tileConfig.consumePower;
+                float weatherIncomeMultiplier = weatherManager != null
+                    ? weatherManager.GetIncomeModifier()
+                    : 1f;
+                float revenue = effectiveTraffic *
+                                stallConfig.basePrice *
+                                tileConfig.consumePower *
+                                weatherIncomeMultiplier;
 
                 // === 消耗食材（每个摊位每晚固定消耗） ===
                 bool hasEnoughLowFood = true;
@@ -561,6 +572,11 @@ namespace CampusNightMarket.Economy
         public void SetGameManager(GameManager manager)
         {
             gameManager = manager;
+        }
+
+        public void SetWeatherManager(WeatherManager manager)
+        {
+            weatherManager = manager;
         }
 
         /// <summary>设置地块配置列表。</summary>

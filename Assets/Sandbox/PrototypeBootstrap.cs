@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using CampusNightMarket.Common;
 using CampusNightMarket.Core;
 using CampusNightMarket.Data;
 using CampusNightMarket.Economy;
 using CampusNightMarket.Map;
 using CampusNightMarket.Market;
 using CampusNightMarket.Player;
+using CampusNightMarket.RandomSystem;
 using CampusNightMarket.Tiles;
 using CampusNightMarket.Turn;
 using UnityEngine;
@@ -22,6 +24,9 @@ public class PrototypeBootstrap : MonoBehaviour
     [SerializeField] private ResourceManager resourceManager;
     [SerializeField] private EconomyManager economyManager;
     [SerializeField] private MarketManager marketManager;
+    [SerializeField] private EventManager eventManager;
+    [SerializeField] private WeatherManager weatherManager;
+    [SerializeField] private InspectionManager inspectionManager;
 
     [Header("原型配置")]
     [SerializeField] private MapConfig mapConfig;
@@ -43,6 +48,8 @@ public class PrototypeBootstrap : MonoBehaviour
     private PlayerRuntimeData playerData;
     private string statusMessage = "等待初始化";
     private string lastNightSettlementSummary = "上一晚结算：尚未发生";
+    private string lastEventSummary = "事件：暂无";
+    private string lastInspectionSummary = "卫生审查：暂无";
     private Vector2 debugScrollPosition;
 
     public PlayerRuntimeData PlayerData
@@ -92,6 +99,7 @@ public class PrototypeBootstrap : MonoBehaviour
         };
 
         BindEconomySystems();
+        BindRandomSystems();
         gameManager.InitializeNewGame(mapConfig, playerData);
         turnManager.ConfigureMovement(mapManager, playerData);
         RegisterTileViews();
@@ -107,6 +115,7 @@ public class PrototypeBootstrap : MonoBehaviour
         RefreshAllTileOwners();
         playerMover.PlaceAt(mapManager, playerData.currentTileId);
         turnManager.BeginFirstDay();
+        BeginPrototypeDaySystems();
         turnManager.StartRollDice();
 
         statusMessage = "初始化完成。点击投骰按钮或按空格。";
@@ -255,6 +264,8 @@ public class PrototypeBootstrap : MonoBehaviour
             "到达 " + targetTileId + "，正在处理地块交互。";
         Debug.Log(statusMessage, this);
 
+        TriggerRandomEvents(EventTriggerType.OnArriveTile, targetTileId, "到达事件");
+
         if (!tileManager.BeginTileInteraction(targetTileId, out string reason))
         {
             statusMessage = "地块交互启动失败：" + reason;
@@ -268,6 +279,7 @@ public class PrototypeBootstrap : MonoBehaviour
         reachableTiles.Clear();
         mapManager.ClearTileHighlights();
         turnManager.NotifyTileInteractionFinished();
+        TriggerRandomEvents(EventTriggerType.OnNightStart, playerData.currentTileId, "夜晚事件");
         RunPrototypeNightSettlement();
         turnManager.NotifyNightSettlementFinished();
         ProcessPrototypeLoanInterest();
@@ -287,6 +299,7 @@ public class PrototypeBootstrap : MonoBehaviour
 
         RestoreEnergyToFull();
         tileManager.ResetDailyInteractionState();
+        BeginPrototypeDaySystems();
         turnManager.StartRollDice();
 
         statusMessage =
@@ -312,6 +325,8 @@ public class PrototypeBootstrap : MonoBehaviour
         if (economyManager != null)
         {
             economyManager.SettleAllMarketsNightIncome();
+            TriggerRandomEvents(EventTriggerType.OnSettlement, playerData.currentTileId, "结算事件");
+            RunPrototypeInspections();
         }
         else
         {
@@ -406,6 +421,130 @@ public class PrototypeBootstrap : MonoBehaviour
         {
             tileManager.SetEconomyManager(economyManager);
         }
+    }
+
+    private void BindRandomSystems()
+    {
+        if (eventManager == null)
+        {
+            eventManager = FindObjectOfType<EventManager>();
+            if (eventManager == null)
+            {
+                eventManager = gameObject.AddComponent<EventManager>();
+            }
+        }
+
+        if (weatherManager == null)
+        {
+            weatherManager = FindObjectOfType<WeatherManager>();
+            if (weatherManager == null)
+            {
+                weatherManager = gameObject.AddComponent<WeatherManager>();
+            }
+        }
+
+        if (inspectionManager == null)
+        {
+            inspectionManager = FindObjectOfType<InspectionManager>();
+            if (inspectionManager == null)
+            {
+                inspectionManager = gameObject.AddComponent<InspectionManager>();
+            }
+        }
+
+        if (economyManager != null)
+        {
+            economyManager.SetWeatherManager(weatherManager);
+        }
+
+        if (inspectionManager != null)
+        {
+            inspectionManager.SetMarketManager(marketManager);
+            inspectionManager.SetResourceManager(resourceManager);
+        }
+
+        if (eventManager != null)
+        {
+            eventManager.SetResourceManager(resourceManager);
+            eventManager.SetMarketManager(marketManager);
+            eventManager.SetInspectionManager(inspectionManager);
+            eventManager.SetWeatherManager(weatherManager);
+            eventManager.SetGameManager(gameManager);
+        }
+    }
+
+    private void BeginPrototypeDaySystems()
+    {
+        if (weatherManager != null &&
+            gameManager != null &&
+            gameManager.RuntimeData != null)
+        {
+            weatherManager.RefreshWeather(gameManager.RuntimeData.currentDay);
+        }
+
+        TriggerRandomEvents(EventTriggerType.OnDayStart, playerData.currentTileId, "每日事件");
+    }
+
+    private void TriggerRandomEvents(
+        EventTriggerType triggerType,
+        string contextTileId,
+        string label)
+    {
+        if (eventManager == null)
+        {
+            return;
+        }
+
+        List<EventRuntimeData> events =
+            eventManager.TriggerEvents(triggerType, contextTileId);
+        if (events == null || events.Count == 0)
+        {
+            lastEventSummary = label + "：未触发";
+            return;
+        }
+
+        lastEventSummary = label + "：触发 " + events.Count + " 个";
+    }
+
+    private void PickTilePoolEvent(string tileId)
+    {
+        if (eventManager == null || mapManager == null)
+        {
+            lastEventSummary = "地块事件：EventManager 未绑定";
+            return;
+        }
+
+        TileConfig tileConfig = mapManager.GetTileConfig(tileId);
+        if (tileConfig == null || string.IsNullOrEmpty(tileConfig.eventPoolId))
+        {
+            lastEventSummary = "地块事件：当前地块没有事件池";
+            return;
+        }
+
+        EventRuntimeData runtimeData =
+            eventManager.PickAndExecuteFromPool(tileConfig.eventPoolId, tileId);
+        lastEventSummary = runtimeData == null
+            ? "地块事件：事件池为空 " + tileConfig.eventPoolId
+            : "地块事件：已触发 " + runtimeData.eventId;
+    }
+
+    private void RunPrototypeInspections()
+    {
+        if (inspectionManager == null || marketManager == null || mapConfig == null)
+        {
+            lastInspectionSummary = "卫生审查：系统未绑定";
+            return;
+        }
+
+        TriggerRandomEvents(EventTriggerType.OnInspection, playerData.currentTileId, "审查事件");
+
+        List<string> penalizedMarkets = inspectionManager.ExecuteNightlyInspections(
+            marketManager.Markets,
+            mapConfig.tileList);
+
+        lastInspectionSummary = penalizedMarkets == null || penalizedMarkets.Count == 0
+            ? "卫生审查：本晚无处罚"
+            : "卫生审查：处罚 " + string.Join(", ", penalizedMarkets);
     }
 
     private bool ConsumeMoveEnergy(int amount)
@@ -641,6 +780,13 @@ public class PrototypeBootstrap : MonoBehaviour
 
     private void ExecuteTileAction(TileActionType action)
     {
+        if ((action == TileActionType.TriggerEvent ||
+             action == TileActionType.TriggerSpecialRule) &&
+            playerData != null)
+        {
+            PickTilePoolEvent(playerData.currentTileId);
+        }
+
         if (!tileManager.ExecuteAction(action, out string reason))
         {
             statusMessage = reason;
@@ -672,6 +818,19 @@ public class PrototypeBootstrap : MonoBehaviour
         }
     }
 
+    private string GetWeatherSummary()
+    {
+        if (weatherManager == null || weatherManager.CurrentWeather == null)
+        {
+            return "天气：暂无";
+        }
+
+        WeatherData weather = weatherManager.CurrentWeather;
+        return "天气：" + weather.weatherName +
+               " / 客流x" + weather.trafficModifier.ToString("0.00") +
+               " / 收入x" + weather.incomeModifier.ToString("0.00");
+    }
+
     private void OnGUI()
     {
         if (!showDebugGui)
@@ -692,6 +851,9 @@ public class PrototypeBootstrap : MonoBehaviour
         GUILayout.Label("每日规则：一次掷骰移动 + 一次落地交互，结束交互后进入夜晚结算。");
         GUILayout.Label(statusMessage);
         GUILayout.Label(lastNightSettlementSummary);
+        GUILayout.Label(GetWeatherSummary());
+        GUILayout.Label(lastEventSummary);
+        GUILayout.Label(lastInspectionSummary);
 
         if (playerData != null)
         {

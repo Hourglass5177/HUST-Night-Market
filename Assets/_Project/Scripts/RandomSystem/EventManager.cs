@@ -1,213 +1,95 @@
 using System.Collections.Generic;
 using CampusNightMarket.Common;
+using CampusNightMarket.Core;
 using CampusNightMarket.Economy;
 using CampusNightMarket.Market;
-using CampusNightMarket.Player;
 using UnityEngine;
 
 namespace CampusNightMarket.RandomSystem
 {
-    /// <summary>
-    /// 随机事件管理器：负责在指定时机触发事件、抽取事件和执行事件效果。
-    /// 利用 Common 中的 EventTriggerType 和 EventEffectType 枚举。
-    /// </summary>
     public class EventManager : MonoBehaviour
     {
         [Header("依赖引用")]
         [SerializeField] private ResourceManager resourceManager;
         [SerializeField] private MarketManager marketManager;
+        [SerializeField] private InspectionManager inspectionManager;
+        [SerializeField] private WeatherManager weatherManager;
+        [SerializeField] private GameManager gameManager;
 
         [Header("事件配置")]
         [SerializeField] private List<GameEvent> eventPool = new List<GameEvent>();
+        [SerializeField] private bool seedDefaultEventsWhenEmpty = true;
 
-        [Header("事件参数")]
-        [SerializeField] private float baseTriggerChance = 0.15f; // 基础触发概率
-
-        /// <summary>
-        /// 在指定时机触发随机事件。
-        /// 遍历事件池中所有符合 triggerType 的事件，按概率抽取并执行。
-        /// </summary>
-        /// <param name="triggerType">触发时机</param>
-        /// <param name="contextTileId">触发上下文的地块ID（到达地块时传入）</param>
-        public List<EventRuntimeData> TriggerEvents(EventTriggerType triggerType, string contextTileId = "")
+        private void Awake()
         {
+            SeedDefaultEventsIfNeeded();
+        }
+
+        public List<EventRuntimeData> TriggerEvents(
+            EventTriggerType triggerType,
+            string contextTileId = "")
+        {
+            SeedDefaultEventsIfNeeded();
+
             List<EventRuntimeData> triggeredEvents = new List<EventRuntimeData>();
-
-            // 过滤出当前触发时机的事件
             List<GameEvent> candidates = GetCandidates(triggerType);
-
             for (int i = 0; i < candidates.Count; i++)
             {
                 GameEvent gameEvent = candidates[i];
-
-                // 按概率判定是否触发
-                if (Random.value > gameEvent.probability)
+                if (gameEvent == null || Random.value > Mathf.Clamp01(gameEvent.probability))
                 {
                     continue;
                 }
 
-                // 执行事件效果
-                ExecuteEventEffect(gameEvent);
-
-                // 记录触发历史
-                EventRuntimeData runtimeData = new EventRuntimeData
-                {
-                    eventId = gameEvent.eventId,
-                    triggeredDay = GetCurrentDay(),
-                    triggeredTileId = contextTileId,
-                    playerChoice = string.Empty
-                };
-
-                triggeredEvents.Add(runtimeData);
-                Debug.Log($"EventManager: Event '{gameEvent.eventName}' triggered. Effect: {gameEvent.effectType} = {gameEvent.effectValue}");
+                ExecuteEventEffect(gameEvent, contextTileId);
+                triggeredEvents.Add(CreateRuntimeData(gameEvent, contextTileId));
+                Debug.Log(
+                    $"EventManager: Event '{gameEvent.eventName}' triggered. " +
+                    $"effect={gameEvent.effectType}, value={gameEvent.effectValue}");
             }
 
             return triggeredEvents;
         }
 
-        /// <summary>
-        /// 从指定事件池中随机抽取一个事件并执行。
-        /// </summary>
-        public EventRuntimeData PickAndExecuteFromPool(string eventPoolId, string contextTileId = "")
+        public EventRuntimeData PickAndExecuteFromPool(
+            string eventPoolId,
+            string contextTileId = "")
         {
             if (string.IsNullOrEmpty(eventPoolId))
             {
                 return null;
             }
 
-            // 过滤出属于该事件池的事件
+            SeedDefaultEventsIfNeeded();
+
             List<GameEvent> poolEvents = new List<GameEvent>();
             for (int i = 0; i < eventPool.Count; i++)
             {
-                if (eventPool[i] != null && eventPool[i].eventPoolId == eventPoolId)
+                GameEvent gameEvent = eventPool[i];
+                if (gameEvent != null && gameEvent.eventPoolId == eventPoolId)
                 {
-                    poolEvents.Add(eventPool[i]);
+                    poolEvents.Add(gameEvent);
                 }
             }
 
             if (poolEvents.Count == 0)
             {
+                Debug.LogWarning($"EventManager: No events configured for pool '{eventPoolId}'.");
                 return null;
             }
 
-            // 随机抽取一个
             GameEvent picked = poolEvents[Random.Range(0, poolEvents.Count)];
-
-            // 执行效果
-            ExecuteEventEffect(picked);
-
-            EventRuntimeData runtimeData = new EventRuntimeData
-            {
-                eventId = picked.eventId,
-                triggeredDay = GetCurrentDay(),
-                triggeredTileId = contextTileId,
-                playerChoice = string.Empty
-            };
-
-            Debug.Log($"EventManager: Pool event '{picked.eventName}' picked from pool '{eventPoolId}'.");
-            return runtimeData;
+            ExecuteEventEffect(picked, contextTileId);
+            Debug.Log(
+                $"EventManager: Pool event '{picked.eventName}' picked from '{eventPoolId}'.");
+            return CreateRuntimeData(picked, contextTileId);
         }
 
-        /// <summary>
-        /// 执行单个事件的效果。
-        /// 根据 EventEffectType 调用对应的 ResourceManager 或 MarketManager 方法。
-        /// </summary>
         public void ExecuteEventEffect(GameEvent gameEvent)
         {
-            if (gameEvent == null)
-            {
-                return;
-            }
-
-            if (resourceManager == null)
-            {
-                Debug.LogError("EventManager.ExecuteEventEffect failed: resourceManager is null.");
-                return;
-            }
-
-            switch (gameEvent.effectType)
-            {
-                case EventEffectType.AddMoney:
-                    if (gameEvent.effectValue >= 0)
-                        resourceManager.AddMoney(gameEvent.effectValue);
-                    else
-                        resourceManager.SpendMoney(-gameEvent.effectValue);
-                    break;
-
-                case EventEffectType.AddLowFood:
-                    if (gameEvent.effectValue >= 0)
-                        resourceManager.AddLowFood(gameEvent.effectValue);
-                    else
-                        resourceManager.ConsumeLowFood(-gameEvent.effectValue);
-                    break;
-
-                case EventEffectType.AddHighFood:
-                    if (gameEvent.effectValue >= 0)
-                        resourceManager.AddHighFood(gameEvent.effectValue);
-                    else
-                        resourceManager.ConsumeHighFood(-gameEvent.effectValue);
-                    break;
-
-                case EventEffectType.AddReputation:
-                    resourceManager.AddReputation(Mathf.Abs(gameEvent.effectValue));
-                    break;
-
-                case EventEffectType.AddEnergy:
-                    if (gameEvent.effectValue >= 0)
-                        resourceManager.RestoreEnergy(gameEvent.effectValue);
-                    else
-                        resourceManager.ConsumeEnergy(-gameEvent.effectValue);
-                    break;
-
-                case EventEffectType.ModifyTraffic:
-                    // 客流修改由 CustomerManager 处理，此处只记录日志
-                    Debug.Log($"EventManager: Traffic modifier event. Value={gameEvent.effectValue}%.");
-                    // 这里需要 CustomerManager 应用该倍率。
-                    break;
-
-                case EventEffectType.ModifyCompetition:
-                    // 竞争强度修改由地图系统处理
-                    Debug.Log($"EventManager: Competition modifier event. Value={gameEvent.effectValue}.");
-                    // 这里需要 MapManager 修改地块竞争强度。
-                    break;
-
-                case EventEffectType.ModifyHygiene:
-                    // 卫生值修改由 InspectionManager 处理
-                    Debug.Log($"EventManager: Hygiene modifier event. Value={gameEvent.effectValue}.");
-                    // 这里需要 InspectionManager 修改夜市总卫生值。
-                    break;
-
-                case EventEffectType.TriggerInspection:
-                    Debug.Log($"EventManager: Forced inspection triggered by event.");
-                    // 这里需要 InspectionManager.ForceInspection() 强制触发检查。
-                    break;
-
-                case EventEffectType.CloseMarket:
-                    if (marketManager != null && gameEvent.effectValue > 0)
-                    {
-                        // 关闭所有玩家夜市
-                        List<MarketRuntimeData> markets = marketManager.Markets;
-                        for (int i = 0; i < markets.Count; i++)
-                        {
-                            if (markets[i] != null && markets[i].owner == OwnerType.Player)
-                            {
-                                marketManager.AddClosedRounds(markets[i].tileId, gameEvent.effectValue);
-                            }
-                        }
-                        Debug.Log($"EventManager: All player markets closed for {gameEvent.effectValue} rounds.");
-                    }
-                    break;
-
-                case EventEffectType.None:
-                default:
-                    Debug.Log($"EventManager: Event '{gameEvent.eventName}' has no effect (None).");
-                    break;
-            }
+            ExecuteEventEffect(gameEvent, string.Empty);
         }
 
-        /// <summary>
-        /// 手动触发二选一事件（由 UI 调用）。
-        /// </summary>
         public void MakeEventChoice(EventRuntimeData eventRuntime, bool chooseA)
         {
             if (eventRuntime == null)
@@ -215,7 +97,6 @@ namespace CampusNightMarket.RandomSystem
                 return;
             }
 
-            // 查找对应的事件配置
             GameEvent gameEvent = FindEvent(eventRuntime.eventId);
             if (gameEvent == null || !gameEvent.requireChoice)
             {
@@ -225,34 +106,250 @@ namespace CampusNightMarket.RandomSystem
             int chosenValue = chooseA ? gameEvent.choiceAValue : gameEvent.choiceBValue;
             eventRuntime.playerChoice = chooseA ? "A" : "B";
 
-            // 应用选择效果
             GameEvent choiceEvent = new GameEvent
             {
                 eventId = gameEvent.eventId + "_CHOICE",
+                eventName = gameEvent.eventName,
                 effectType = gameEvent.effectType,
                 effectValue = chosenValue
             };
-            ExecuteEventEffect(choiceEvent);
-
-            Debug.Log($"EventManager: Choice made for '{gameEvent.eventName}': {(chooseA ? "A" : "B")}, value={chosenValue}");
+            ExecuteEventEffect(choiceEvent, eventRuntime.triggeredTileId);
         }
 
-        /// <summary>
-        /// 获取当前天数（通过 GameManager 或默认值）。
-        /// </summary>
+        public void AddEvent(GameEvent gameEvent)
+        {
+            if (gameEvent != null)
+            {
+                eventPool.Add(gameEvent);
+            }
+        }
+
+        public void SetResourceManager(ResourceManager manager)
+        {
+            resourceManager = manager;
+        }
+
+        public void SetMarketManager(MarketManager manager)
+        {
+            marketManager = manager;
+        }
+
+        public void SetInspectionManager(InspectionManager manager)
+        {
+            inspectionManager = manager;
+        }
+
+        public void SetWeatherManager(WeatherManager manager)
+        {
+            weatherManager = manager;
+        }
+
+        public void SetGameManager(GameManager manager)
+        {
+            gameManager = manager;
+        }
+
+        private void ExecuteEventEffect(GameEvent gameEvent, string contextTileId)
+        {
+            if (gameEvent == null)
+            {
+                return;
+            }
+
+            switch (gameEvent.effectType)
+            {
+                case EventEffectType.AddMoney:
+                    ApplyMoney(gameEvent.effectValue);
+                    break;
+                case EventEffectType.AddLowFood:
+                    ApplyLowFood(gameEvent.effectValue);
+                    break;
+                case EventEffectType.AddHighFood:
+                    ApplyHighFood(gameEvent.effectValue);
+                    break;
+                case EventEffectType.AddReputation:
+                    if (resourceManager != null && gameEvent.effectValue > 0)
+                    {
+                        resourceManager.AddReputation(gameEvent.effectValue);
+                    }
+                    break;
+                case EventEffectType.AddEnergy:
+                    ApplyEnergy(gameEvent.effectValue);
+                    break;
+                case EventEffectType.ModifyHygiene:
+                    ModifyPlayerMarketsHygiene(gameEvent.effectValue);
+                    break;
+                case EventEffectType.TriggerInspection:
+                    TriggerInspection(contextTileId);
+                    break;
+                case EventEffectType.CloseMarket:
+                    ClosePlayerMarkets(gameEvent.effectValue, contextTileId);
+                    break;
+                case EventEffectType.ModifyTraffic:
+                case EventEffectType.ModifyCompetition:
+                case EventEffectType.None:
+                default:
+                    Debug.Log(
+                        $"EventManager: Event '{gameEvent.eventName}' effect is currently informational.");
+                    break;
+            }
+        }
+
+        private void ApplyMoney(int value)
+        {
+            if (resourceManager == null)
+            {
+                return;
+            }
+
+            if (value >= 0)
+            {
+                resourceManager.AddMoney(value);
+            }
+            else
+            {
+                resourceManager.SpendMoney(-value);
+            }
+        }
+
+        private void ApplyLowFood(int value)
+        {
+            if (resourceManager == null)
+            {
+                return;
+            }
+
+            if (value >= 0)
+            {
+                resourceManager.AddLowFood(value);
+            }
+            else
+            {
+                resourceManager.ConsumeLowFood(-value);
+            }
+        }
+
+        private void ApplyHighFood(int value)
+        {
+            if (resourceManager == null)
+            {
+                return;
+            }
+
+            if (value >= 0)
+            {
+                resourceManager.AddHighFood(value);
+            }
+            else
+            {
+                resourceManager.ConsumeHighFood(-value);
+            }
+        }
+
+        private void ApplyEnergy(int value)
+        {
+            if (resourceManager == null)
+            {
+                return;
+            }
+
+            if (value >= 0)
+            {
+                resourceManager.RestoreEnergy(value);
+            }
+            else
+            {
+                resourceManager.ConsumeEnergy(-value);
+            }
+        }
+
+        private void ModifyPlayerMarketsHygiene(int value)
+        {
+            if (marketManager == null || marketManager.Markets == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < marketManager.Markets.Count; i++)
+            {
+                MarketRuntimeData market = marketManager.Markets[i];
+                if (market != null && market.owner == OwnerType.Player)
+                {
+                    market.totalHygiene = Mathf.Clamp(market.totalHygiene + value, 0f, 100f);
+                }
+            }
+        }
+
+        private void TriggerInspection(string contextTileId)
+        {
+            if (inspectionManager == null || marketManager == null)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(contextTileId) &&
+                marketManager.GetMarket(contextTileId) != null)
+            {
+                inspectionManager.ForceInspection(contextTileId);
+                return;
+            }
+
+            for (int i = 0; i < marketManager.Markets.Count; i++)
+            {
+                MarketRuntimeData market = marketManager.Markets[i];
+                if (market != null && market.owner == OwnerType.Player)
+                {
+                    inspectionManager.ForceInspection(market.tileId);
+                    return;
+                }
+            }
+        }
+
+        private void ClosePlayerMarkets(int rounds, string contextTileId)
+        {
+            if (marketManager == null || rounds <= 0)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(contextTileId) &&
+                marketManager.GetMarket(contextTileId) != null)
+            {
+                marketManager.AddClosedRounds(contextTileId, rounds);
+                return;
+            }
+
+            for (int i = 0; i < marketManager.Markets.Count; i++)
+            {
+                MarketRuntimeData market = marketManager.Markets[i];
+                if (market != null && market.owner == OwnerType.Player)
+                {
+                    marketManager.AddClosedRounds(market.tileId, rounds);
+                }
+            }
+        }
+
+        private EventRuntimeData CreateRuntimeData(GameEvent gameEvent, string contextTileId)
+        {
+            return new EventRuntimeData
+            {
+                eventId = gameEvent.eventId,
+                triggeredDay = GetCurrentDay(),
+                triggeredTileId = contextTileId,
+                playerChoice = string.Empty
+            };
+        }
+
         private int GetCurrentDay()
         {
-            // 简化处理，后续接入 GameManager
-            return 1;
+            return gameManager != null && gameManager.RuntimeData != null
+                ? gameManager.RuntimeData.currentDay
+                : 1;
         }
 
-        /// <summary>
-        /// 过滤出指定触发时机的事件候选列表。
-        /// </summary>
         private List<GameEvent> GetCandidates(EventTriggerType triggerType)
         {
             List<GameEvent> candidates = new List<GameEvent>();
-
             for (int i = 0; i < eventPool.Count; i++)
             {
                 GameEvent gameEvent = eventPool[i];
@@ -265,9 +362,6 @@ namespace CampusNightMarket.RandomSystem
             return candidates;
         }
 
-        /// <summary>
-        /// 按 eventId 查找事件配置。
-        /// </summary>
         private GameEvent FindEvent(string eventId)
         {
             if (string.IsNullOrEmpty(eventId))
@@ -277,40 +371,38 @@ namespace CampusNightMarket.RandomSystem
 
             for (int i = 0; i < eventPool.Count; i++)
             {
-                if (eventPool[i] != null && eventPool[i].eventId == eventId)
+                GameEvent gameEvent = eventPool[i];
+                if (gameEvent != null && gameEvent.eventId == eventId)
                 {
-                    return eventPool[i];
+                    return gameEvent;
                 }
             }
 
             return null;
         }
 
-        /// <summary>
-        /// 添加一个新事件到事件池。
-        /// </summary>
-        public void AddEvent(GameEvent gameEvent)
+        private void SeedDefaultEventsIfNeeded()
         {
-            if (gameEvent != null)
+            if (!seedDefaultEventsWhenEmpty || eventPool == null || eventPool.Count > 0)
             {
-                eventPool.Add(gameEvent);
+                return;
             }
-        }
 
-        /// <summary>
-        /// 设置 ResourceManager 引用。
-        /// </summary>
-        public void SetResourceManager(ResourceManager manager)
-        {
-            resourceManager = manager;
-        }
+            eventPool.Add(new GameEvent("EV_DAY_SPONSOR", "社团赞助", EventTriggerType.OnDayStart, EventEffectType.AddMoney, 300, 0.12f, ""));
+            eventPool.Add(new GameEvent("EV_NIGHT_SUPPLY", "临期食材补给", EventTriggerType.OnNightStart, EventEffectType.AddLowFood, 10, 0.16f, ""));
+            eventPool.Add(new GameEvent("EV_SETTLEMENT_BUZZ", "夜市口碑发酵", EventTriggerType.OnSettlement, EventEffectType.AddReputation, 1, 0.12f, ""));
+            eventPool.Add(new GameEvent("EV_INSPECTION_NOTICE", "突击卫生提醒", EventTriggerType.OnInspection, EventEffectType.TriggerInspection, 0, 0.08f, ""));
 
-        /// <summary>
-        /// 设置 MarketManager 引用。
-        /// </summary>
-        public void SetMarketManager(MarketManager manager)
-        {
-            marketManager = manager;
+            eventPool.Add(new GameEvent("EV_MAIN_CLUBS_REP", "社团打卡", EventTriggerType.Manual, EventEffectType.AddReputation, 1, 1f, "EVENT_MAIN_CLUBS"));
+            eventPool.Add(new GameEvent("EV_MAIN_ACADEMIC_MONEY", "讲座散场客流", EventTriggerType.Manual, EventEffectType.AddMoney, 300, 1f, "EVENT_MAIN_ACADEMIC"));
+            eventPool.Add(new GameEvent("EV_MAIN_DORM_FOOD", "寝室拼单", EventTriggerType.Manual, EventEffectType.AddLowFood, 10, 1f, "EVENT_MAIN_DORM"));
+            eventPool.Add(new GameEvent("EV_GATEWAY_ENERGY", "校门补给", EventTriggerType.Manual, EventEffectType.AddEnergy, 1, 1f, "EVENT_GATEWAY"));
+            eventPool.Add(new GameEvent("EV_EAST_HIGH_FOOD", "东校区采购", EventTriggerType.Manual, EventEffectType.AddHighFood, 4, 1f, "EVENT_EAST_CAMPUS"));
+            eventPool.Add(new GameEvent("EV_EAST_DORM_LOW_FOOD", "东区寝室团购", EventTriggerType.Manual, EventEffectType.AddLowFood, 12, 1f, "EVENT_EAST_DORM"));
+            eventPool.Add(new GameEvent("EV_GUANGGU_GATEWAY_MONEY", "光谷入口人潮", EventTriggerType.Manual, EventEffectType.AddMoney, 500, 1f, "EVENT_GUANGGU_GATEWAY"));
+            eventPool.Add(new GameEvent("EV_GUANGGU_HYGIENE", "商圈卫生压力", EventTriggerType.Manual, EventEffectType.ModifyHygiene, -8, 1f, "EVENT_GUANGGU_BUSINESS"));
+            eventPool.Add(new GameEvent("EV_MAIN_CENTER_REP", "主校区中心曝光", EventTriggerType.Manual, EventEffectType.AddReputation, 2, 1f, "SPECIAL_MAIN_CENTER"));
+            eventPool.Add(new GameEvent("EV_GUANGGU_CORE_MONEY", "光谷核心客流爆发", EventTriggerType.Manual, EventEffectType.AddMoney, 800, 1f, "SPECIAL_GUANGGU_CORE"));
         }
     }
 }
