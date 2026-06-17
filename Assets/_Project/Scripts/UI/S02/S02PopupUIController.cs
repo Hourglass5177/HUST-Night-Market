@@ -6,9 +6,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class S02PopupUIController : MonoBehaviour
 {
+    private const string MainMenuSceneName = "S01_MainMenu_test1";
+
     [Header("System References")]
     [SerializeField] private PrototypeBootstrap prototypeBootstrap;
     [SerializeField] private GameManager gameManager;
@@ -142,13 +147,17 @@ public class S02PopupUIController : MonoBehaviour
     public void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("S01_MainMenu");
+        SceneManager.LoadScene(MainMenuSceneName);
     }
 
     public void QuitGame()
     {
         AddMessage("退出游戏。");
+#if UNITY_EDITOR
+        EditorApplication.isPlaying = false;
+#else
         Application.Quit();
+#endif
     }
 
     public void ContinueEndlessMode()
@@ -158,6 +167,12 @@ public class S02PopupUIController : MonoBehaviour
             prototypeBootstrap.ContinueAfterWin();
         }
 
+        finalizeWasShown = false;
+        SetActive(finalizePopup, false);
+    }
+
+    public void CloseFinalize()
+    {
         finalizeWasShown = false;
         SetActive(finalizePopup, false);
     }
@@ -186,6 +201,8 @@ public class S02PopupUIController : MonoBehaviour
             loanInput = input == null ? null : input.GetComponent<TMP_InputField>();
         }
 
+        RepairLoanInputField();
+
         BindLoanTexts();
         BindSettlementTexts();
         BindFinalizeTexts();
@@ -202,7 +219,7 @@ public class S02PopupUIController : MonoBehaviour
         BindButton(FindButtonByExactName(root, "Btn_ToNight"), RunNightSettlementFromUI);
         BindButton(FindButtonByExactName(root, "Menu"), OpenMenu);
 
-        Button loanOpenButton = FindOrCreateOutsidePopupButton(root, "Loan", loanPopup);
+        Button loanOpenButton = FindOutsidePopupButton(root, "Loan", loanPopup);
         if (loanOpenButton != null)
         {
             BindButton(loanOpenButton, OpenLoan);
@@ -210,19 +227,19 @@ public class S02PopupUIController : MonoBehaviour
 
         if (loanPopup != null)
         {
-            BindButton(FindFirstButtonByText(loanPopup.transform, "拆除"), CloseLoan);
-            BindButton(FindFirstButtonByText(loanPopup.transform, "确认"), ConfirmLoanRepayment);
+            BindButton(FindButtonByExactName(loanPopup.transform, "exitButton"), CloseLoan);
+            BindButton(FindLoanConfirmButton(loanPopup.transform), ConfirmLoanRepayment);
         }
 
         if (settlementPopup != null)
         {
-            BindButton(FindFirstButtonByText(settlementPopup.transform, "拆除"), CloseSettlement);
+            BindButton(FindButtonByExactName(settlementPopup.transform, "exitButton"), CloseSettlement);
             BindButton(FindFirstButtonByText(settlementPopup.transform, "继续次日经营"), CloseSettlement);
         }
 
         if (menuPopup != null)
         {
-            BindButton(FindFirstButtonByText(menuPopup.transform, "拆除"), CloseMenu);
+            BindButton(FindButtonByExactName(menuPopup.transform, "exitButton"), CloseMenu);
             BindButton(FindFirstButtonByText(menuPopup.transform, "结算"), RunNightSettlementFromUI);
             BindButton(FindFirstButtonByText(menuPopup.transform, "退出游戏"), QuitGame);
             BindButton(FindFirstButtonByText(menuPopup.transform, "返回主菜单"), ReturnToMainMenu);
@@ -230,6 +247,7 @@ public class S02PopupUIController : MonoBehaviour
 
         if (finalizePopup != null)
         {
+            BindButton(FindButtonByExactName(finalizePopup.transform, "exitButton"), CloseFinalize);
             BindButton(FindFirstButtonByText(finalizePopup.transform, "返回主菜单"), ReturnToMainMenu);
             BindButton(FindFirstButtonByText(finalizePopup.transform, "无尽模式"), ContinueEndlessMode);
         }
@@ -431,7 +449,82 @@ public class S02PopupUIController : MonoBehaviour
         return target == null ? null : target.GetComponent<Button>();
     }
 
-    private Button FindOrCreateOutsidePopupButton(Transform root, string name, GameObject popupToSkip)
+    private void RepairLoanInputField()
+    {
+        if (loanInput == null)
+        {
+            return;
+        }
+
+        if (loanInput.textComponent == null)
+        {
+            TextMeshProUGUI text = FindInputTextComponent(loanInput);
+            if (text == null)
+            {
+                text = CreateInputTextComponent(loanInput);
+            }
+
+            loanInput.textComponent = text;
+        }
+
+        if (!string.IsNullOrEmpty(loanInput.text) && loanInput.text.Contains("\u8bf7\u8f93\u5165"))
+        {
+            loanInput.SetTextWithoutNotify(string.Empty);
+        }
+    }
+
+    private TextMeshProUGUI FindInputTextComponent(TMP_InputField input)
+    {
+        TextMeshProUGUI[] texts = input.GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (input.placeholder != null && texts[i].gameObject == input.placeholder.gameObject)
+            {
+                continue;
+            }
+
+            return texts[i];
+        }
+
+        return null;
+    }
+
+    private TextMeshProUGUI CreateInputTextComponent(TMP_InputField input)
+    {
+        Transform parent = input.textViewport != null ? input.textViewport.transform : input.transform;
+        GameObject textObject = new GameObject("Text", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        textObject.transform.SetParent(parent, false);
+
+        RectTransform rectTransform = textObject.GetComponent<RectTransform>();
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.one;
+        rectTransform.offsetMin = new Vector2(5f, 2f);
+        rectTransform.offsetMax = new Vector2(-5f, -2f);
+
+        TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI placeholderText = input.placeholder == null
+            ? null
+            : input.placeholder.GetComponent<TextMeshProUGUI>();
+
+        if (placeholderText != null)
+        {
+            text.font = placeholderText.font;
+            text.fontSize = placeholderText.fontSize;
+            text.alignment = placeholderText.alignment;
+        }
+        else
+        {
+            text.fontSize = 20f;
+            text.alignment = TextAlignmentOptions.MidlineLeft;
+        }
+
+        text.text = string.Empty;
+        text.color = Color.black;
+        text.raycastTarget = false;
+        return text;
+    }
+
+    private Button FindOutsidePopupButton(Transform root, string name, GameObject popupToSkip)
     {
         if (root == null || string.IsNullOrEmpty(name))
         {
@@ -452,18 +545,36 @@ public class S02PopupUIController : MonoBehaviour
             }
 
             Button button = children[i].GetComponent<Button>();
-            if (button == null)
+            if (button != null)
             {
-                button = children[i].gameObject.AddComponent<Button>();
-                Graphic graphic = children[i].GetComponent<Graphic>() ??
-                                  children[i].GetComponentInChildren<Graphic>(true);
-                button.targetGraphic = graphic;
+                return button;
             }
-
-            return button;
         }
 
         return null;
+    }
+
+    private Button FindLoanConfirmButton(Transform root)
+    {
+        Button button = FindButtonByExactName(root, "confirmButton");
+        if (button != null) return button;
+
+        button = FindButtonByExactName(root, "Btn_Confirm");
+        if (button != null) return button;
+
+        button = FindButtonByExactName(root, "Btn_LoanConfirm");
+        if (button != null) return button;
+
+        button = FindButtonByExactName(root, "Btn_RepayLoan");
+        if (button != null) return button;
+
+        button = FindFirstButtonByText(root, "\u786e\u8ba4");
+        if (button != null) return button;
+
+        button = FindFirstButtonByText(root, "\u8fd8\u6b3e");
+        if (button != null) return button;
+
+        return FindFirstButtonByText(root, "\u507f\u8fd8");
     }
 
     private Button FindFirstButtonByText(Transform root, string text)

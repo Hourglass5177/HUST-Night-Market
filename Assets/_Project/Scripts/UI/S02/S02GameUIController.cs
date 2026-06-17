@@ -106,12 +106,8 @@ public class S02GameUIController : MonoBehaviour
 
         if (rollDiceButton != null)
         {
-            bool canAutoFinishInteraction =
-                runtimeData != null &&
-                runtimeData.currentPhase == GamePhase.TileInteraction;
             rollDiceButton.interactable =
-                prototypeBootstrap != null &&
-                (prototypeBootstrap.CanRollDiceForUI() || canAutoFinishInteraction);
+                prototypeBootstrap != null && prototypeBootstrap.CanRollDiceForUI();
         }
 
         if (continueAfterWinButton != null)
@@ -127,12 +123,6 @@ public class S02GameUIController : MonoBehaviour
         {
             AddMessage("PrototypeBootstrap is missing.", true);
             return;
-        }
-
-        GameRuntimeData runtimeData = gameManager != null ? gameManager.RuntimeData : null;
-        if (runtimeData != null && runtimeData.currentPhase == GamePhase.TileInteraction)
-        {
-            prototypeBootstrap.ExecuteTileActionForUI(TileActionType.CompleteInteraction);
         }
 
         prototypeBootstrap.RollDice();

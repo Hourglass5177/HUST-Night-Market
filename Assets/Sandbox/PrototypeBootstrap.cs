@@ -68,7 +68,7 @@ public class PrototypeBootstrap : MonoBehaviour
 
     public bool CanRollDiceForUI()
     {
-        return CanRollDice();
+        return CanRollDice() || tileManager != null && tileManager.IsInteractionActive;
     }
 
     private void Start()
@@ -81,7 +81,7 @@ public class PrototypeBootstrap : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && CanRollDice())
+        if (Input.GetKeyDown(KeyCode.Space) && CanRollDiceForUI())
         {
             RollDice();
         }

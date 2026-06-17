@@ -4,10 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 public class TileInteractionPanelController : MonoBehaviour
 {
     [Header("System References")]
@@ -65,22 +61,22 @@ public class TileInteractionPanelController : MonoBehaviour
 
         if (info == null)
         {
-            SetText(titleText, "名称:--");
-            SetText(typeText, "类型:--");
+            SetText(titleText, "\u540d\u79f0:--");
+            SetText(typeText, "\u7c7b\u578b:--");
             SetText(ownerText, "--");
-            SetText(purchasePriceText, "购买价格:--");
+            SetText(purchasePriceText, "\u8d2d\u4e70\u4ef7\u683c:--");
             SetCustomerRatioTexts(null);
-            SetText(messageText, "移动到地块后显示地块信息。");
+            SetText(messageText, "\u79fb\u52a8\u5230\u5730\u5757\u540e\u663e\u793a\u5730\u5757\u4fe1\u606f\u3002");
             HideActionButtons();
             return;
         }
 
-        SetText(titleText, "名称:" + (string.IsNullOrEmpty(info.tileName) ? info.tileId : info.tileName));
-        SetText(typeText, "类型:" + GetTileTypeLabel(info.tileType));
+        SetText(titleText, "\u540d\u79f0:" + (string.IsNullOrEmpty(info.tileName) ? info.tileId : info.tileName));
+        SetText(typeText, "\u7c7b\u578b:" + GetTileTypeLabel(info.tileType));
         SetText(ownerText, info.owner.ToString());
-        SetText(purchasePriceText, "购买价格:" + Mathf.Max(0, info.purchasePrice));
+        SetText(purchasePriceText, "\u8d2d\u4e70\u4ef7\u683c:" + Mathf.Max(0, info.purchasePrice));
         SetCustomerRatioTexts(info);
-        SetText(messageText, isActive ? info.message : "当前所在地块。");
+        SetText(messageText, isActive ? info.message : "\u5f53\u524d\u6240\u5728\u5730\u5757\u3002");
 
         if (!isActive)
         {
@@ -216,15 +212,12 @@ public class TileInteractionPanelController : MonoBehaviour
 
     private void SetButtonVisible(Button button, bool visible)
     {
-        if (button != null)
+        if (button == null || IsReservedGlobalButton(button))
         {
-            if (IsReservedGlobalButton(button))
-            {
-                return;
-            }
-
-            button.gameObject.SetActive(visible);
+            return;
         }
+
+        button.gameObject.SetActive(visible);
     }
 
     private bool IsReservedGlobalButton(Button button)
@@ -262,23 +255,15 @@ public class TileInteractionPanelController : MonoBehaviour
 
     private void SetCustomerRatioTexts(TileInteractionInfo info)
     {
-        SetText(studentRatioText, "学生 " + FormatPercent(info == null ? -1f : info.studentRatio));
-        SetText(teacherRatioText, "教师 " + FormatPercent(info == null ? -1f : info.teacherRatio));
-        SetText(touristRatioText, "游客 " + FormatPercent(info == null ? -1f : info.touristRatio));
-        SetText(residentRatioText, "居民 " + FormatPercent(info == null ? -1f : info.residentRatio));
+        SetText(studentRatioText, "\u5b66\u751f " + FormatPercent(info == null ? -1f : info.studentRatio));
+        SetText(teacherRatioText, "\u6559\u5e08 " + FormatPercent(info == null ? -1f : info.teacherRatio));
+        SetText(touristRatioText, "\u6e38\u5ba2 " + FormatPercent(info == null ? -1f : info.touristRatio));
+        SetText(residentRatioText, "\u5c45\u6c11 " + FormatPercent(info == null ? -1f : info.residentRatio));
     }
 
     private void ApplyChineseFontToInfoTexts()
     {
-#if UNITY_EDITOR
-        TMP_FontAsset chineseFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
-            "Assets/_Project/UI/Fonts/SC.asset");
-        if (chineseFont == null)
-        {
-            chineseFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
-                "Assets/_Project/UI/Fonts/SourceHanSansSC-VF SDF 1.asset");
-        }
-
+        TMP_FontAsset chineseFont = FindSceneChineseFont();
         if (chineseFont == null)
         {
             return;
@@ -292,7 +277,6 @@ public class TileInteractionPanelController : MonoBehaviour
         ApplyFont(touristRatioText, chineseFont);
         ApplyFont(residentRatioText, chineseFont);
         ApplyFont(messageText, chineseFont);
-#endif
     }
 
     private void ApplyFont(TextMeshProUGUI target, TMP_FontAsset font)
@@ -303,22 +287,54 @@ public class TileInteractionPanelController : MonoBehaviour
         }
     }
 
+    private TMP_FontAsset FindSceneChineseFont()
+    {
+        TextMeshProUGUI[] texts = FindObjectsOfType<TextMeshProUGUI>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (texts[i] == null || texts[i].font == null || string.IsNullOrEmpty(texts[i].text))
+            {
+                continue;
+            }
+
+            if (ContainsChinese(texts[i].text))
+            {
+                return texts[i].font;
+            }
+        }
+
+        return null;
+    }
+
+    private bool ContainsChinese(string value)
+    {
+        for (int i = 0; i < value.Length; i++)
+        {
+            if (value[i] >= '\u4e00' && value[i] <= '\u9fff')
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private string GetTileTypeLabel(TileType tileType)
     {
         switch (tileType)
         {
             case TileType.Start:
-                return "起点";
+                return "\u8d77\u70b9";
             case TileType.Buildable:
-                return "可购买地块";
+                return "\u53ef\u8d2d\u4e70\u5730\u5757";
             case TileType.Resource:
-                return "资源地块";
+                return "\u8d44\u6e90\u5730\u5757";
             case TileType.Shop:
-                return "商店地块";
+                return "\u5546\u5e97\u5730\u5757";
             case TileType.Event:
-                return "事件地块";
+                return "\u4e8b\u4ef6\u5730\u5757";
             case TileType.Special:
-                return "特殊地块";
+                return "\u7279\u6b8a\u5730\u5757";
             default:
                 return tileType.ToString();
         }
@@ -326,7 +342,10 @@ public class TileInteractionPanelController : MonoBehaviour
 
     private void HideRemovedInfoRows()
     {
-        HideTextsContaining("区域", "月维护佣金", "竞争强度");
+        HideTextsContaining(
+            "\u533a\u57df",
+            "\u6708\u7ef4\u62a4\u4f63\u91d1",
+            "\u7ade\u4e89\u5f3a\u5ea6");
     }
 
     private void HideTextsContaining(params string[] labels)
@@ -346,19 +365,21 @@ public class TileInteractionPanelController : MonoBehaviour
 
             for (int j = 0; j < labels.Length; j++)
             {
-                if (!string.IsNullOrEmpty(labels[j]) && texts[i].text.Contains(labels[j]))
+                if (string.IsNullOrEmpty(labels[j]) || !texts[i].text.Contains(labels[j]))
                 {
-                    Transform row = texts[i].transform.parent;
-                    if (row != null && row != panelRoot.transform)
-                    {
-                        row.gameObject.SetActive(false);
-                    }
-                    else
-                    {
-                        texts[i].gameObject.SetActive(false);
-                    }
-                    break;
+                    continue;
                 }
+
+                Transform row = texts[i].transform.parent;
+                if (row != null && row != panelRoot.transform)
+                {
+                    row.gameObject.SetActive(false);
+                }
+                else
+                {
+                    texts[i].gameObject.SetActive(false);
+                }
+                break;
             }
         }
     }
@@ -385,19 +406,19 @@ public class TileInteractionPanelController : MonoBehaviour
             TextMeshProUGUI text = texts[i];
             string key = (text.name + " " + text.text).ToLowerInvariant();
 
-            if (studentRatioText == null && ContainsAny(key, "student", "学生"))
+            if (studentRatioText == null && ContainsAny(key, "student", "\u5b66\u751f"))
             {
                 studentRatioText = text;
             }
-            else if (teacherRatioText == null && ContainsAny(key, "teacher", "教师"))
+            else if (teacherRatioText == null && ContainsAny(key, "teacher", "\u6559\u5e08"))
             {
                 teacherRatioText = text;
             }
-            else if (touristRatioText == null && ContainsAny(key, "tourist", "游客"))
+            else if (touristRatioText == null && ContainsAny(key, "tourist", "\u6e38\u5ba2"))
             {
                 touristRatioText = text;
             }
-            else if (residentRatioText == null && ContainsAny(key, "resident", "居民"))
+            else if (residentRatioText == null && ContainsAny(key, "resident", "\u5c45\u6c11"))
             {
                 residentRatioText = text;
             }
