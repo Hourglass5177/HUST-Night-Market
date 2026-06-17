@@ -295,6 +295,7 @@ public class PrototypeBootstrap : MonoBehaviour
         {
             statusMessage = "地块交互启动失败：" + reason;
             Debug.LogWarning(statusMessage, this);
+            PrepareNextRollAfterInteraction();
         }
     }
 
