@@ -49,6 +49,7 @@ public class S02GameUIController : MonoBehaviour
     [Header("Buttons")]
     [SerializeField] private Button rollDiceButton;
     [SerializeField] private Button openMarketPanelButton;
+    [SerializeField] private Button nightSettlementButton;
     [SerializeField] private Button endInteractionButton;
     [SerializeField] private Button continueAfterWinButton;
 
@@ -147,6 +148,26 @@ public class S02GameUIController : MonoBehaviour
         AddMessage("Market panel is missing.", true);
     }
 
+    public void OnNightSettlementClicked()
+    {
+        S02PopupUIController popupController = FindObjectOfType<S02PopupUIController>();
+        if (popupController != null)
+        {
+            popupController.RunNightSettlementFromUI();
+            return;
+        }
+
+        if (prototypeBootstrap == null)
+        {
+            AddMessage("PrototypeBootstrap is missing.", true);
+            return;
+        }
+
+        prototypeBootstrap.AdvancePrototypeTurn();
+        AddMessage("\u8fdb\u5165\u9ed1\u591c\u3002");
+        RefreshHud();
+    }
+
     public void OnEndInteractionClicked()
     {
         if (prototypeBootstrap != null)
@@ -206,6 +227,7 @@ public class S02GameUIController : MonoBehaviour
 
         if (rollDiceButton == null) rollDiceButton = FindButton(root, "RollDice", "Dice", "Btn_left");
         if (openMarketPanelButton == null) openMarketPanelButton = FindButton(root, "Night_Market", "Night_Market_Button", "MarketButton", "Menu");
+        if (nightSettlementButton == null) nightSettlementButton = FindButton(root, "Btn_ToNight");
         if (continueAfterWinButton == null) continueAfterWinButton = FindButton(root, "Continue", "btn_Continue");
 
         ApplyChineseFontToHudTexts();
@@ -223,6 +245,12 @@ public class S02GameUIController : MonoBehaviour
         {
             openMarketPanelButton.onClick.RemoveListener(OnOpenMarketPanelClicked);
             openMarketPanelButton.onClick.AddListener(OnOpenMarketPanelClicked);
+        }
+
+        if (nightSettlementButton != null)
+        {
+            nightSettlementButton.onClick.RemoveAllListeners();
+            nightSettlementButton.onClick.AddListener(OnNightSettlementClicked);
         }
 
         if (endInteractionButton != null)
@@ -392,14 +420,50 @@ public class S02GameUIController : MonoBehaviour
 
     private Button FindButton(Transform root, params string[] names)
     {
-        Transform target = FindChildByName(root, names);
-        if (target == null)
+        if (root == null || names == null)
         {
             return null;
         }
 
-        return target.GetComponent<Button>() ??
-               target.GetComponentInChildren<Button>(true);
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < names.Length; i++)
+        {
+            string name = names[i];
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < children.Length; j++)
+            {
+                Button button = children[j].GetComponent<Button>();
+                if (button != null && children[j].name == name)
+                {
+                    return button;
+                }
+            }
+        }
+
+        for (int i = 0; i < names.Length; i++)
+        {
+            string name = names[i];
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < children.Length; j++)
+            {
+                Button button = children[j].GetComponent<Button>();
+                if (button != null &&
+                    children[j].name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return button;
+                }
+            }
+        }
+
+        return null;
     }
 
     private Transform FindChildByName(Transform root, params string[] names)

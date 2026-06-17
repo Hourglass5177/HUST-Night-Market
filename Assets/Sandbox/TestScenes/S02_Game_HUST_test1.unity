@@ -19529,39 +19529,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &1087001779
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1087001774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b823b43a4aa4b2d960f6b5f59e12a71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  prototypeBootstrap: {fileID: 0}
-  gameManager: {fileID: 0}
-  resourceManager: {fileID: 0}
-  messageScrollBar: {fileID: 0}
-  loanPopup: {fileID: 0}
-  settlementPopup: {fileID: 0}
-  finalizePopup: {fileID: 0}
-  menuPopup: {fileID: 0}
-  loanAmountText: {fileID: 0}
-  loanDaysText: {fileID: 0}
-  loanInput: {fileID: 0}
-  settlementIncomeText: {fileID: 0}
-  settlementFoodText: {fileID: 0}
-  settlementCostText: {fileID: 0}
-  settlementPenaltyText: {fileID: 0}
-  settlementReputationText: {fileID: 0}
-  settlementNetText: {fileID: 0}
-  finalizeTitleText: {fileID: 0}
-  finalizeDaysText: {fileID: 0}
-  finalizeIncomeText: {fileID: 0}
-  finalizeReputationText: {fileID: 0}
 --- !u!114 &1087001776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19634,6 +19601,39 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1087001779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087001774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b823b43a4aa4b2d960f6b5f59e12a71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prototypeBootstrap: {fileID: 0}
+  gameManager: {fileID: 0}
+  resourceManager: {fileID: 0}
+  messageScrollBar: {fileID: 0}
+  loanPopup: {fileID: 0}
+  settlementPopup: {fileID: 0}
+  finalizePopup: {fileID: 0}
+  menuPopup: {fileID: 0}
+  loanAmountText: {fileID: 0}
+  loanDaysText: {fileID: 0}
+  loanInput: {fileID: 0}
+  settlementIncomeText: {fileID: 0}
+  settlementFoodText: {fileID: 0}
+  settlementCostText: {fileID: 0}
+  settlementPenaltyText: {fileID: 0}
+  settlementReputationText: {fileID: 0}
+  settlementNetText: {fileID: 0}
+  finalizeTitleText: {fileID: 0}
+  finalizeDaysText: {fileID: 0}
+  finalizeIncomeText: {fileID: 0}
+  finalizeReputationText: {fileID: 0}
 --- !u!1 &1088433223
 GameObject:
   m_ObjectHideFlags: 0
@@ -37175,7 +37175,7 @@ MonoBehaviour:
   mapConfig: {fileID: 11400000, guid: e2351455669b5164fb8df2fd472d2ea4, type: 2}
   startingEnergy: 10
   initializeOnStart: 1
-  showDebugGui: 1
+  showDebugGui: 0
   autoAdvanceAfterInteraction: 1
   autoResolvePlaceholderResourceRequests: 1
   tileViews: []
