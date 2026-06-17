@@ -429,6 +429,10 @@ namespace CampusNightMarket.RandomSystem
             return new EventRuntimeData
             {
                 eventId = gameEvent.eventId,
+                eventName = gameEvent.eventName,
+                eventDescription = gameEvent.eventDescription,
+                effectType = gameEvent.effectType,
+                effectValue = gameEvent.effectValue,
                 triggeredDay = GetCurrentDay(),
                 triggeredTileId = contextTileId,
                 playerChoice = string.Empty

@@ -28,6 +28,7 @@ public class PrototypeBootstrap : MonoBehaviour
     [SerializeField] private EventManager eventManager;
     [SerializeField] private WeatherManager weatherManager;
     [SerializeField] private InspectionManager inspectionManager;
+    [SerializeField] private MessageScrollBar messageScrollBar;
 
     [Header("原型配置")]
     [SerializeField] private MapConfig mapConfig;
@@ -516,6 +517,11 @@ public class PrototypeBootstrap : MonoBehaviour
             eventManager.SetWeatherManager(weatherManager);
             eventManager.SetGameManager(gameManager);
         }
+
+        if (tileManager != null)
+        {
+            tileManager.SetEventManager(eventManager);
+        }
     }
 
     private void EnsureS02UIControllers()
@@ -557,6 +563,11 @@ public class PrototypeBootstrap : MonoBehaviour
             controllerObject.transform.SetParent(canvas.transform, false);
             controllerObject.AddComponent<S02PopupUIController>();
         }
+
+        if (messageScrollBar == null)
+        {
+            messageScrollBar = FindObjectOfType<MessageScrollBar>();
+        }
     }
 
     private void BeginPrototypeDaySystems()
@@ -590,6 +601,10 @@ public class PrototypeBootstrap : MonoBehaviour
         }
 
         lastEventSummary = label + "：触发 " + events.Count + " 个";
+        for (int i = 0; i < events.Count; i++)
+        {
+            AddMessage(BuildEventMessage(label, events[i]), IsNegativeEvent(events[i]));
+        }
     }
 
     private void PickTilePoolEvent(string tileId)
@@ -612,6 +627,11 @@ public class PrototypeBootstrap : MonoBehaviour
         lastEventSummary = runtimeData == null
             ? "地块事件：事件池为空 " + tileConfig.eventPoolId
             : "地块事件：已触发 " + runtimeData.eventId;
+
+        if (runtimeData != null)
+        {
+            AddMessage(BuildEventMessage("地块事件", runtimeData), IsNegativeEvent(runtimeData));
+        }
     }
 
     private void RunPrototypeInspections()
@@ -854,6 +874,57 @@ public class PrototypeBootstrap : MonoBehaviour
     private void HandleTileMessageChanged(string message)
     {
         statusMessage = message;
+        AddMessage(message);
+    }
+
+    private void AddMessage(string message, bool isWarning = false)
+    {
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        if (messageScrollBar == null)
+        {
+            messageScrollBar = FindObjectOfType<MessageScrollBar>();
+        }
+
+        if (messageScrollBar != null)
+        {
+            messageScrollBar.AddNewMsg(message, isWarning);
+        }
+    }
+
+    private string BuildEventMessage(string label, EventRuntimeData runtimeData)
+    {
+        if (runtimeData == null)
+        {
+            return label + "：未触发";
+        }
+
+        string eventName = string.IsNullOrEmpty(runtimeData.eventName)
+            ? runtimeData.eventId
+            : runtimeData.eventName;
+        string message = label + "：" + eventName;
+        if (!string.IsNullOrEmpty(runtimeData.eventDescription))
+        {
+            message += " - " + runtimeData.eventDescription;
+        }
+
+        return message;
+    }
+
+    private bool IsNegativeEvent(EventRuntimeData runtimeData)
+    {
+        if (runtimeData == null)
+        {
+            return false;
+        }
+
+        return runtimeData.effectValue < 0 ||
+               runtimeData.effectType == EventEffectType.ModifyHygiene ||
+               runtimeData.effectType == EventEffectType.TriggerInspection ||
+               runtimeData.effectType == EventEffectType.CloseMarket;
     }
 
     private void HandleTileOwnerChanged(string tileId, CampusNightMarket.Common.OwnerType owner)
@@ -979,13 +1050,6 @@ public class PrototypeBootstrap : MonoBehaviour
 
     private void ExecuteTileAction(TileActionType action)
     {
-        if ((action == TileActionType.TriggerEvent ||
-             action == TileActionType.TriggerSpecialRule) &&
-            playerData != null)
-        {
-            PickTilePoolEvent(playerData.currentTileId);
-        }
-
         if (!tileManager.ExecuteAction(action, out string reason))
         {
             statusMessage = reason;

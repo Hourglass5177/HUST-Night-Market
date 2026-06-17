@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tileId: T15
   tileName: 
-  tileType: 3
+  tileType: 4
   regionId: REGION_CAMPUS_GATEWAY
   position: {x: 0, y: 0, z: 0}
   nextTileIds:
@@ -33,4 +33,4 @@ MonoBehaviour:
   inspectionRate: 0.09
   resourceType: 0
   resourceAmount: 0
-  eventPoolId: 
+  eventPoolId: EVENT_POOL_ARRIVE

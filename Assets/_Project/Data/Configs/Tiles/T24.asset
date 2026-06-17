@@ -33,4 +33,4 @@ MonoBehaviour:
   inspectionRate: 0.10
   resourceType: 0
   resourceAmount: 0
-  eventPoolId: EVENT_GUANGGU_GATEWAY
+  eventPoolId: EVENT_POOL_ARRIVE

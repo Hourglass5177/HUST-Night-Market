@@ -60,7 +60,6 @@ namespace CampusNightMarket.Tiles
             if (targetRenderer != null)
             {
                 runtimeMaterial = targetRenderer.material;
-                normalColor = runtimeMaterial.color;
             }
 
             RefreshColor();

@@ -5,6 +5,7 @@ using CampusNightMarket.Data;
 using CampusNightMarket.Economy;
 using CampusNightMarket.Map;
 using CampusNightMarket.Market;
+using CampusNightMarket.RandomSystem;
 using UnityEngine;
 
 namespace CampusNightMarket.Tiles
@@ -16,6 +17,7 @@ namespace CampusNightMarket.Tiles
         [SerializeField] private MapManager mapManager;
         [SerializeField] private MarketManager marketManager;
         [SerializeField] private EconomyManager economyManager;
+        [SerializeField] private EventManager eventManager;
 
         [Header("原型交互设置")]
         [SerializeField] private bool autoCompleteStart = true;
@@ -106,6 +108,11 @@ namespace CampusNightMarket.Tiles
         public void SetEconomyManager(EconomyManager manager)
         {
             economyManager = manager;
+        }
+
+        public void SetEventManager(EventManager manager)
+        {
+            eventManager = manager;
         }
 
         public TileRuntimeData GetTileRuntimeData(string tileId)
@@ -553,13 +560,7 @@ namespace CampusNightMarket.Tiles
             }
 
             currentRuntimeData.isInteractionCompletedToday = true;
-            string eventPoolId = string.IsNullOrEmpty(currentTileConfig.eventPoolId)
-                ? "未配置事件池"
-                : currentTileConfig.eventPoolId;
-
-            RefreshCurrentInteraction(
-                "已触发事件池：" + eventPoolId +
-                "。当前为原型结果，等待EventManager接入。");
+            RefreshCurrentInteraction(ExecuteCurrentTilePoolEvent("事件地块"));
 
             if (autoCompleteEvent)
             {
@@ -579,8 +580,7 @@ namespace CampusNightMarket.Tiles
             }
 
             currentRuntimeData.isInteractionCompletedToday = true;
-            RefreshCurrentInteraction(
-                "特殊地块检查已执行。当前无实际处罚，等待卫生检查系统接入。");
+            RefreshCurrentInteraction(ExecuteCurrentTilePoolEvent("特殊地块"));
 
             if (autoCompleteSpecial)
             {
@@ -588,6 +588,46 @@ namespace CampusNightMarket.Tiles
             }
 
             return true;
+        }
+
+        private string ExecuteCurrentTilePoolEvent(string label)
+        {
+            if (currentTileConfig == null || string.IsNullOrEmpty(currentTileConfig.eventPoolId))
+            {
+                return label + "未配置事件池。";
+            }
+
+            if (eventManager == null)
+            {
+                return label + "事件池未触发：EventManager 未绑定。";
+            }
+
+            EventRuntimeData runtimeData =
+                eventManager.PickAndExecuteFromPool(
+                    currentTileConfig.eventPoolId,
+                    currentTileConfig.tileId);
+
+            return runtimeData == null
+                ? label + "事件池为空：" + currentTileConfig.eventPoolId
+                : label + "已触发：" + GetEventDisplayText(runtimeData);
+        }
+
+        private string GetEventDisplayText(EventRuntimeData runtimeData)
+        {
+            if (runtimeData == null)
+            {
+                return string.Empty;
+            }
+
+            string eventName = string.IsNullOrEmpty(runtimeData.eventName)
+                ? runtimeData.eventId
+                : runtimeData.eventName;
+            if (string.IsNullOrEmpty(runtimeData.eventDescription))
+            {
+                return eventName;
+            }
+
+            return eventName + " - " + runtimeData.eventDescription;
         }
 
         private void ExecuteAutomaticInteraction()

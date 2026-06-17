@@ -33,4 +33,4 @@ MonoBehaviour:
   inspectionRate: 0.09
   resourceType: 0
   resourceAmount: 0
-  eventPoolId: EVENT_MAIN_ACADEMIC
+  eventPoolId: EVENT_POOL_ARRIVE

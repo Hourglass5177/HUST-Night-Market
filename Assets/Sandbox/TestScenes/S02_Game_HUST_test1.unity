@@ -2861,7 +2861,7 @@ MonoBehaviour:
   tileId: T18
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 141635211}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -5306,6 +5306,7 @@ MonoBehaviour:
   mapManager: {fileID: 1481142371}
   marketManager: {fileID: 1601521797}
   economyManager: {fileID: 124609229}
+  eventManager: {fileID: 0}
   autoCompleteStart: 1
   autoCompleteResource: 1
   autoCompleteEvent: 1
@@ -6289,7 +6290,7 @@ MonoBehaviour:
   tileId: T14
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 349710956}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -6406,7 +6407,7 @@ MonoBehaviour:
   tileId: T21
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 354653140}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -9808,7 +9809,7 @@ MonoBehaviour:
   tileId: T29
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 499011653}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -9972,7 +9973,7 @@ MonoBehaviour:
   tileId: T15
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 507144630}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -10818,7 +10819,7 @@ MonoBehaviour:
   tileId: T02
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 538625659}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -11190,7 +11191,7 @@ MonoBehaviour:
   tileId: T26
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 552546465}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -12061,7 +12062,7 @@ MonoBehaviour:
   tileId: T10
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 609948046}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -15344,7 +15345,7 @@ MonoBehaviour:
   tileId: T28
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 795512245}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -16534,7 +16535,7 @@ MonoBehaviour:
   tileId: T16
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 849887776}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -17249,7 +17250,7 @@ MonoBehaviour:
   tileId: T35
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 879199551}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.09019608, g: 0.43529412, b: 0.043137256, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -17366,7 +17367,7 @@ MonoBehaviour:
   tileId: T22
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 888845017}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -20361,7 +20362,7 @@ MonoBehaviour:
   tileId: T03
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1103241292}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.09019608, g: 0.43529412, b: 0.043137256, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -21548,7 +21549,7 @@ MonoBehaviour:
   tileId: T17
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1149463358}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -21885,7 +21886,7 @@ MonoBehaviour:
   tileId: T36
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1157282232}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.09019608, g: 0.43529412, b: 0.043137256, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -22253,7 +22254,7 @@ MonoBehaviour:
   tileId: T08
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1171790668}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -24037,6 +24038,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   content: {fileID: 526628466}
   msgItemPrefab: {fileID: 162878759059126703, guid: 60d0ad11ee5af6541aa3b87f51570367, type: 3}
+  minItemHeight: 28
+  itemSpacing: 4
 --- !u!1 &1306599177
 GameObject:
   m_ObjectHideFlags: 0
@@ -24551,7 +24554,7 @@ MonoBehaviour:
   tileId: T05
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1310506006}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.09019608, g: 0.43529412, b: 0.043137256, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -25070,7 +25073,7 @@ MonoBehaviour:
   tileId: T24
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1339695651}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -25919,7 +25922,7 @@ MonoBehaviour:
   tileId: T13
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1414020603}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8018868, g: 0.04160734, b: 0.6298988, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -27670,7 +27673,7 @@ MonoBehaviour:
   tileId: T30
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1503711701}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -28042,7 +28045,7 @@ MonoBehaviour:
   tileId: T32
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1525199948}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.09019608, g: 0.43529412, b: 0.043137256, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -29320,7 +29323,7 @@ MonoBehaviour:
   tileId: T19
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1596197787}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -30742,7 +30745,7 @@ MonoBehaviour:
   tileId: T20
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1633571559}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -31347,7 +31350,7 @@ MonoBehaviour:
   tileId: T31
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1652498361}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -31585,7 +31588,7 @@ MonoBehaviour:
   tileId: T09
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1659755232}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -35185,7 +35188,7 @@ MonoBehaviour:
   tileId: T06
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1825078495}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -37032,7 +37035,7 @@ MonoBehaviour:
   tileId: T11
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1896526631}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -37283,7 +37286,7 @@ MonoBehaviour:
   tileId: T04
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1904549043}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -37404,6 +37407,7 @@ MonoBehaviour:
   eventManager: {fileID: 0}
   weatherManager: {fileID: 0}
   inspectionManager: {fileID: 0}
+  messageScrollBar: {fileID: 0}
   mapConfig: {fileID: 11400000, guid: e2351455669b5164fb8df2fd472d2ea4, type: 2}
   startingEnergy: 10
   initializeOnStart: 1
@@ -37742,7 +37746,7 @@ MonoBehaviour:
   tileId: T34
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1945102014}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 1, g: 0.34901962, b: 0.34901962, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -37859,7 +37863,7 @@ MonoBehaviour:
   tileId: T27
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1954986457}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.09019608, g: 0.43529412, b: 0.043137256, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -38244,7 +38248,7 @@ MonoBehaviour:
   tileId: T23
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1963969023}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.09019608, g: 0.43529412, b: 0.043137256, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -38495,7 +38499,7 @@ MonoBehaviour:
   tileId: T07
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 1972471972}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.08942387, g: 0.4339623, b: 0.04298683, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}
@@ -40884,7 +40888,7 @@ MonoBehaviour:
   tileId: T33
   standPoint: {fileID: 0}
   targetRenderer: {fileID: 2054783546}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.8, g: 0.043137256, b: 0.6313726, a: 1}
   playerOwnedColor: {r: 0.25, g: 0.65, b: 1, a: 1}
   npcOwnedColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   reachableColor: {r: 0.35, g: 1, b: 0.35, a: 1}

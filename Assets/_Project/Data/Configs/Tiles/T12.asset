@@ -34,4 +34,4 @@ MonoBehaviour:
   inspectionRate: 0.10
   resourceType: 0
   resourceAmount: 0
-  eventPoolId: SPECIAL_MAIN_CENTER
+  eventPoolId: EVENT_POOL_ARRIVE

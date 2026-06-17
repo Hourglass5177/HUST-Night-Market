@@ -87,6 +87,18 @@ namespace CampusNightMarket.RandomSystem
         /// <summary>对应 GameEvent.eventId。</summary>
         public string eventId;
 
+        /// <summary>事件显示名称。</summary>
+        public string eventName;
+
+        /// <summary>事件描述文本。</summary>
+        public string eventDescription;
+
+        /// <summary>事件效果类型。</summary>
+        public EventEffectType effectType;
+
+        /// <summary>事件效果数值。</summary>
+        public int effectValue;
+
         /// <summary>事件触发的天数。</summary>
         public int triggeredDay;
 
