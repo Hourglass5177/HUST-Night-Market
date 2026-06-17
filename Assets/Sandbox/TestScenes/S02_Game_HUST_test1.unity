@@ -38498,7 +38498,7 @@ MonoBehaviour:
   mapConfig: {fileID: 11400000, guid: e2351455669b5164fb8df2fd472d2ea4, type: 2}
   startingEnergy: 10
   initializeOnStart: 1
-  showDebugGui: 1
+  showDebugGui: 0
   autoAdvanceAfterInteraction: 1
   autoResolvePlaceholderResourceRequests: 1
   tileViews: []

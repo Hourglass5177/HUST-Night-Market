@@ -4,6 +4,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class TileInteractionPanelController : MonoBehaviour
 {
     [Header("System References")]
@@ -193,7 +197,7 @@ public class TileInteractionPanelController : MonoBehaviour
 
     private void BindButton(Button button, TileActionType action)
     {
-        if (button == null)
+        if (button == null || IsReservedGlobalButton(button))
         {
             return;
         }
@@ -263,7 +267,12 @@ public class TileInteractionPanelController : MonoBehaviour
 
     private void ApplyChineseFontToInfoTexts()
     {
-        TMP_FontAsset chineseFont = FindSceneChineseFont();
+        TMP_FontAsset chineseFont = LoadConfiguredChineseFont();
+        if (chineseFont == null)
+        {
+            chineseFont = FindSceneChineseFont();
+        }
+
         if (chineseFont == null)
         {
             return;
@@ -271,6 +280,7 @@ public class TileInteractionPanelController : MonoBehaviour
 
         ApplyFont(titleText, chineseFont);
         ApplyFont(typeText, chineseFont);
+        ApplyFont(ownerText, chineseFont);
         ApplyFont(purchasePriceText, chineseFont);
         ApplyFont(studentRatioText, chineseFont);
         ApplyFont(teacherRatioText, chineseFont);
@@ -285,6 +295,35 @@ public class TileInteractionPanelController : MonoBehaviour
         {
             target.font = font;
         }
+    }
+
+    private TMP_FontAsset LoadConfiguredChineseFont()
+    {
+#if UNITY_EDITOR
+        TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+            "Assets/_Project/UI/Fonts/SC.asset");
+        if (font == null)
+        {
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/_Project/UI/Fonts/SourceHanSansSC-VF SDF 1.asset");
+        }
+
+        if (font == null)
+        {
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/_Project/UI/Fonts/SourceHanSansSC-VF SDF.asset");
+        }
+
+        if (font == null)
+        {
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/_Project/UI/Fonts/Font_SourceHanSans.asset");
+        }
+
+        return font;
+#else
+        return null;
+#endif
     }
 
     private TMP_FontAsset FindSceneChineseFont()
@@ -479,14 +518,60 @@ public class TileInteractionPanelController : MonoBehaviour
 
     private Button FindButton(Transform root, params string[] names)
     {
-        Transform target = FindChildByName(root, names);
-        if (target == null)
+        if (root == null || names == null)
         {
             return null;
         }
 
-        return target.GetComponent<Button>() ??
-               target.GetComponentInChildren<Button>(true);
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < names.Length; i++)
+        {
+            string name = names[i];
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < children.Length; j++)
+            {
+                if (IsReservedGlobalButtonName(children[j].name))
+                {
+                    continue;
+                }
+
+                Button button = children[j].GetComponent<Button>();
+                if (button != null && children[j].name == name)
+                {
+                    return button;
+                }
+            }
+        }
+
+        for (int i = 0; i < names.Length; i++)
+        {
+            string name = names[i];
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < children.Length; j++)
+            {
+                if (IsReservedGlobalButtonName(children[j].name))
+                {
+                    continue;
+                }
+
+                Button button = children[j].GetComponent<Button>();
+                if (button != null &&
+                    children[j].name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return button;
+                }
+            }
+        }
+
+        return null;
     }
 
     private Transform FindChildByExactName(Transform root, string name)
