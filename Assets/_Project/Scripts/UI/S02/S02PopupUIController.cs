@@ -206,6 +206,7 @@ public class S02PopupUIController : MonoBehaviour
         BindLoanTexts();
         BindSettlementTexts();
         BindFinalizeTexts();
+        ApplyChineseFontToPopupTexts();
     }
 
     private void BindButtons()
@@ -331,6 +332,77 @@ public class S02PopupUIController : MonoBehaviour
 
         SetText(loanAmountText, "当前剩余贷款额：" + playerData.loan);
         SetText(loanDaysText, "剩余天数：" + GetDaysUntilNextInterest());
+    }
+
+    private void ApplyChineseFontToPopupTexts()
+    {
+        TMP_FontAsset chineseFont = LoadConfiguredChineseFont();
+        if (chineseFont == null)
+        {
+            return;
+        }
+
+        ApplyChineseFontToPopup(loanPopup, chineseFont);
+        ApplyChineseFontToPopup(settlementPopup, chineseFont);
+        ApplyChineseFontToPopup(finalizePopup, chineseFont);
+        ApplyChineseFontToPopup(menuPopup, chineseFont);
+
+        if (loanInput != null)
+        {
+            ApplyFont(loanInput.textComponent as TextMeshProUGUI, chineseFont);
+            ApplyFont(loanInput.placeholder as TextMeshProUGUI, chineseFont);
+        }
+    }
+
+    private void ApplyChineseFontToPopup(GameObject popup, TMP_FontAsset font)
+    {
+        if (popup == null || font == null)
+        {
+            return;
+        }
+
+        TextMeshProUGUI[] texts = popup.GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            ApplyFont(texts[i], font);
+        }
+    }
+
+    private TMP_FontAsset LoadConfiguredChineseFont()
+    {
+#if UNITY_EDITOR
+        TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+            "Assets/_Project/UI/Fonts/SC.asset");
+        if (font == null)
+        {
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/_Project/UI/Fonts/SourceHanSansSC-VF SDF 1.asset");
+        }
+
+        if (font == null)
+        {
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/_Project/UI/Fonts/SourceHanSansSC-VF SDF.asset");
+        }
+
+        if (font == null)
+        {
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/_Project/UI/Fonts/Font_SourceHanSans.asset");
+        }
+
+        return font;
+#else
+        return null;
+#endif
+    }
+
+    private void ApplyFont(TextMeshProUGUI target, TMP_FontAsset font)
+    {
+        if (target != null && font != null)
+        {
+            target.font = font;
+        }
     }
 
     private void RefreshSettlementPopup()
