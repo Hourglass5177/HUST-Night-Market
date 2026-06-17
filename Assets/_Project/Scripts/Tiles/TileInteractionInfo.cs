@@ -12,6 +12,10 @@ namespace CampusNightMarket.Tiles
         public string tileName;
         public TileType tileType;
         public OwnerType owner;
+        public float studentRatio;
+        public float teacherRatio;
+        public float touristRatio;
+        public float residentRatio;
         public List<TileActionType> availableActions = new List<TileActionType>();
         public string message;
 

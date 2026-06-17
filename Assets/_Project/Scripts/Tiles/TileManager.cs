@@ -155,7 +155,11 @@ namespace CampusNightMarket.Tiles
                     ? tileConfig.tileId
                     : tileConfig.tileName,
                 tileType = tileConfig.tileType,
-                owner = runtimeData.owner
+                owner = runtimeData.owner,
+                studentRatio = tileConfig.studentRatio,
+                teacherRatio = tileConfig.teacherRatio,
+                touristRatio = tileConfig.touristRatio,
+                residentRatio = tileConfig.residentRatio
             };
 
             info.availableActions.Add(TileActionType.ViewInfo);

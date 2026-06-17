@@ -11,6 +11,7 @@ using CampusNightMarket.Tiles;
 using CampusNightMarket.Turn;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 // 原型场景入口：初始化测试地图，并串联投骰、选地块和玩家移动。
 public class PrototypeBootstrap : MonoBehaviour
@@ -51,10 +52,22 @@ public class PrototypeBootstrap : MonoBehaviour
     private string lastEventSummary = "事件：暂无";
     private string lastInspectionSummary = "卫生审查：暂无";
     private Vector2 debugScrollPosition;
+    private int currentMoveStepBudget;
+    private bool hasActiveMoveBudget;
 
     public PlayerRuntimeData PlayerData
     {
         get { return playerData; }
+    }
+
+    public MapConfig MapConfigForUI
+    {
+        get { return mapConfig; }
+    }
+
+    public bool CanRollDiceForUI()
+    {
+        return CanRollDice();
     }
 
     private void Start()
@@ -100,6 +113,7 @@ public class PrototypeBootstrap : MonoBehaviour
 
         BindEconomySystems();
         BindRandomSystems();
+        EnsureS02UIControllers();
         gameManager.InitializeNewGame(mapConfig, playerData);
         turnManager.ConfigureMovement(mapManager, playerData);
         RegisterTileViews();
@@ -114,6 +128,8 @@ public class PrototypeBootstrap : MonoBehaviour
         SubscribeTileManagerEvents();
         RefreshAllTileOwners();
         playerMover.PlaceAt(mapManager, playerData.currentTileId);
+        currentMoveStepBudget = 0;
+        hasActiveMoveBudget = false;
         turnManager.BeginFirstDay();
         BeginPrototypeDaySystems();
         turnManager.StartRollDice();
@@ -146,7 +162,9 @@ public class PrototypeBootstrap : MonoBehaviour
             return;
         }
 
-        ShowReachableTiles(diceValue);
+        currentMoveStepBudget = Mathf.Min(diceValue, playerData.energy);
+        hasActiveMoveBudget = currentMoveStepBudget > 0;
+        ShowReachableTiles(currentMoveStepBudget);
     }
 
     private void RegisterTileViews()
@@ -187,10 +205,11 @@ public class PrototypeBootstrap : MonoBehaviour
     {
         reachableTiles.Clear();
         mapManager.ClearTileHighlights();
+        int allowedSteps = Mathf.Min(diceValue, playerData.energy);
 
         List<ReachableTileResult> results = mapManager.GetReachableTiles(
             playerData.currentTileId,
-            diceValue,
+            allowedSteps,
             playerData.energy);
 
         for (int i = 0; i < results.Count; i++)
@@ -224,6 +243,7 @@ public class PrototypeBootstrap : MonoBehaviour
             return;
         }
 
+        EnsurePrototypePhase(CampusNightMarket.Common.GamePhase.ChooseMove);
         if (!turnManager.SelectMoveTarget(result.tileId))
         {
             statusMessage = "回合系统拒绝了移动目标。";
@@ -238,6 +258,9 @@ public class PrototypeBootstrap : MonoBehaviour
             return;
         }
 
+        currentMoveStepBudget = 0;
+        hasActiveMoveBudget = false;
+
         tileView.SetSelected(true);
         statusMessage = "正在移动到 " + result.tileId;
 
@@ -249,6 +272,8 @@ public class PrototypeBootstrap : MonoBehaviour
         if (!started)
         {
             RestoreMoveEnergy(requiredSteps);
+            currentMoveStepBudget = requiredSteps;
+            hasActiveMoveBudget = true;
             statusMessage = "玩家移动启动失败。";
         }
     }
@@ -278,10 +303,13 @@ public class PrototypeBootstrap : MonoBehaviour
     {
         reachableTiles.Clear();
         mapManager.ClearTileHighlights();
+        EnsurePrototypePhase(CampusNightMarket.Common.GamePhase.TileInteraction);
         turnManager.NotifyTileInteractionFinished();
+        EnsurePrototypePhase(CampusNightMarket.Common.GamePhase.NightSettlement);
         TriggerRandomEvents(EventTriggerType.OnNightStart, playerData.currentTileId, "夜晚事件");
         RunPrototypeNightSettlement();
         turnManager.NotifyNightSettlementFinished();
+        EnsurePrototypePhase(CampusNightMarket.Common.GamePhase.DayEnd);
         ProcessPrototypeLoanInterest();
         turnManager.EndDay();
 
@@ -298,6 +326,8 @@ public class PrototypeBootstrap : MonoBehaviour
         }
 
         RestoreEnergyToFull();
+        currentMoveStepBudget = 0;
+        hasActiveMoveBudget = false;
         tileManager.ResetDailyInteractionState();
         BeginPrototypeDaySystems();
         turnManager.StartRollDice();
@@ -305,6 +335,19 @@ public class PrototypeBootstrap : MonoBehaviour
         statusMessage =
             "原型回合已推进。当前位置：" + playerData.currentTileId +
             "，按空格继续投骰。";
+    }
+
+    private void EnsurePrototypePhase(CampusNightMarket.Common.GamePhase phase)
+    {
+        if (gameManager == null ||
+            gameManager.RuntimeData == null ||
+            gameManager.RuntimeData.isGameOver ||
+            gameManager.RuntimeData.currentPhase == phase)
+        {
+            return;
+        }
+
+        gameManager.SetPhase(phase);
     }
 
     private void RunPrototypeNightSettlement()
@@ -375,6 +418,7 @@ public class PrototypeBootstrap : MonoBehaviour
         return playerData != null &&
                playerMover != null &&
                !playerMover.IsMoving &&
+               !hasActiveMoveBudget &&
                reachableTiles.Count == 0 &&
                (tileManager == null || !tileManager.IsInteractionActive) &&
                turnManager != null &&
@@ -473,6 +517,47 @@ public class PrototypeBootstrap : MonoBehaviour
         }
     }
 
+    private void EnsureS02UIControllers()
+    {
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            return;
+        }
+
+        if (FindObjectOfType<S02GameUIController>() == null)
+        {
+            GameObject controllerObject = new GameObject("UIController");
+            controllerObject.transform.SetParent(canvas.transform, false);
+            controllerObject.AddComponent<S02GameUIController>();
+        }
+
+        if (FindObjectOfType<TileInteractionPanelController>() == null)
+        {
+            Transform interactionPanel = FindSceneChildByName(
+                canvas.transform,
+                "Right_InfoPanel",
+                "TileInteraction",
+                "information");
+            GameObject target = interactionPanel != null ? interactionPanel.gameObject : canvas.gameObject;
+            target.AddComponent<TileInteractionPanelController>();
+        }
+
+        if (FindObjectOfType<MarketPanelController>() == null)
+        {
+            Transform marketPanel = FindMarketPanelRoot(canvas.transform);
+            GameObject target = marketPanel != null ? marketPanel.gameObject : canvas.gameObject;
+            target.AddComponent<MarketPanelController>();
+        }
+
+        if (FindObjectOfType<S02PopupUIController>() == null)
+        {
+            GameObject controllerObject = new GameObject("PopupUIController");
+            controllerObject.transform.SetParent(canvas.transform, false);
+            controllerObject.AddComponent<S02PopupUIController>();
+        }
+    }
+
     private void BeginPrototypeDaySystems()
     {
         if (weatherManager != null &&
@@ -547,6 +632,102 @@ public class PrototypeBootstrap : MonoBehaviour
             : "卫生审查：处罚 " + string.Join(", ", penalizedMarkets);
     }
 
+    private Transform FindSceneChildByName(Transform root, params string[] names)
+    {
+        if (root == null || names == null)
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < names.Length; i++)
+        {
+            string targetName = names[i];
+            if (string.IsNullOrEmpty(targetName))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < children.Length; j++)
+            {
+                if (children[j].name.IndexOf(
+                        targetName,
+                        System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return children[j];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Transform FindMarketPanelRoot(Transform root)
+    {
+        Transform panel = FindSceneChildByExactName(root, "Pop_NightMarket");
+        if (panel != null)
+        {
+            return panel;
+        }
+
+        panel = FindSceneChildByExactName(root, "MarketPanel");
+        if (panel != null)
+        {
+            return panel;
+        }
+
+        if (root == null)
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i].name.IndexOf(
+                    "Night_Market",
+                    System.StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                continue;
+            }
+
+            if (children[i].GetComponent<Button>() == null)
+            {
+                return children[i];
+            }
+        }
+
+        return null;
+    }
+
+    private Transform FindSceneChildByExactName(Transform root, params string[] names)
+    {
+        if (root == null || names == null)
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < names.Length; i++)
+        {
+            string targetName = names[i];
+            if (string.IsNullOrEmpty(targetName))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < children.Length; j++)
+            {
+                if (children[j].name == targetName)
+                {
+                    return children[j];
+                }
+            }
+        }
+
+        return null;
+    }
+
     private bool ConsumeMoveEnergy(int amount)
     {
         if (resourceManager != null)
@@ -596,6 +777,8 @@ public class PrototypeBootstrap : MonoBehaviour
 
         turnManager.ContinueAfterWin();
         RestoreEnergyToFull();
+        currentMoveStepBudget = 0;
+        hasActiveMoveBudget = false;
         tileManager.ResetDailyInteractionState();
         turnManager.StartRollDice();
         statusMessage = "已进入无尽模式，可以继续投骰。";
@@ -646,10 +829,25 @@ public class PrototypeBootstrap : MonoBehaviour
     {
         statusMessage = "已完成 " + tileId + " 的地块交互。";
 
-        if (autoAdvanceAfterInteraction)
+        PrepareNextRollAfterInteraction();
+    }
+
+    private void PrepareNextRollAfterInteraction()
+    {
+        reachableTiles.Clear();
+        mapManager.ClearTileHighlights();
+        currentMoveStepBudget = 0;
+        hasActiveMoveBudget = false;
+
+        if (playerData == null || playerData.energy <= 0)
         {
-            AdvancePrototypeTurn();
+            statusMessage = "No energy left. Click night settlement.";
+            return;
         }
+
+        EnsurePrototypePhase(CampusNightMarket.Common.GamePhase.DayStart);
+        turnManager.StartRollDice();
+        statusMessage = "Interaction finished. Roll dice again or click night settlement.";
     }
 
     private void HandleTileMessageChanged(string message)
@@ -791,6 +989,11 @@ public class PrototypeBootstrap : MonoBehaviour
         {
             statusMessage = reason;
         }
+    }
+
+    public void ExecuteTileActionForUI(TileActionType action)
+    {
+        ExecuteTileAction(action);
     }
 
     private string GetActionLabel(TileActionType action)

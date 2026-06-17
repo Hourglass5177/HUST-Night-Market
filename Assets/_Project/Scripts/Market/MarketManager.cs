@@ -316,6 +316,29 @@ namespace CampusNightMarket.Market
         }
 
         // 检查指定摊位是否可以升级。
+        public bool RemoveStall(string tileId, string stallId, List<StallConfig> stallConfigs, out string reason)
+        {
+            reason = string.Empty;
+
+            MarketRuntimeData marketData = GetMarket(tileId);
+            if (marketData == null)
+            {
+                reason = "Market does not exist.";
+                return false;
+            }
+
+            StallRuntimeData stallData = FindStall(marketData, stallId);
+            if (stallData == null)
+            {
+                reason = "Stall does not exist.";
+                return false;
+            }
+
+            marketData.stallList.Remove(stallData);
+            RefreshMarketSummary(marketData, stallConfigs);
+            return true;
+        }
+
         public bool CanUpgradeStall(MarketRuntimeData marketData, StallRuntimeData stallData, StallConfig stallConfig, out string reason)
         {
             reason = string.Empty;
