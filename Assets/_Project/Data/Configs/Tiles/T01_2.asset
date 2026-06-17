@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9969f18e44de4bd45a592f54a959c7b9, type: 3}
+  m_Name: T01_2
+  m_EditorClassIdentifier: 
+  tileId: T01_2
+  tileName: Test Square Start
+  tileType: 0
+  regionId: REGION_SQUARE_TEST
+  position: {x: 0, y: 0, z: 0}
+  nextTileIds:
+  - T16_2
+  - T02_2
+  canPurchase: 0
+  purchasePrice: 0
+  rentCost: 0
+  baseTraffic: 90
+  consumePower: 0.95
+  studentRatio: 0.72
+  teacherRatio: 0.13
+  touristRatio: 0.05
+  residentRatio: 0.10
+  competition: 8
+  inspectionRate: 0.04
+  resourceType: 0
+  resourceAmount: 0
+  eventPoolId: 

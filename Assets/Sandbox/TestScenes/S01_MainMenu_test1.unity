@@ -2127,6 +2127,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loanPopup: {fileID: 0}
   gameSceneName: S02_Game_HUST_test1
+  gamePlusSceneName: S03_Game_square_test1
 --- !u!1 &1188084756
 GameObject:
   m_ObjectHideFlags: 0
@@ -3115,7 +3116,7 @@ GameObject:
   - component: {fileID: 1830678613}
   - component: {fileID: 1830678612}
   m_Layer: 5
-  m_Name: btn_Continue
+  m_Name: btn_NewGame+
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3489,7 +3490,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7EE7\u7EED\u6E38\u620F"
+  m_text: "\u65B0\u6E38\u620F+"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe853bde2285bd0489ca92d83e0910cc, type: 2}
   m_sharedMaterial: {fileID: 7090119292988057932, guid: fe853bde2285bd0489ca92d83e0910cc, type: 2}
