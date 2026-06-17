@@ -15,21 +15,22 @@ MonoBehaviour:
   tileId: T26
   tileName: 
   tileType: 1
-  regionId: REGION_TEST_CAMPUS
+  regionId: REGION_GUANGGU_BUSINESS
   position: {x: 0, y: 0, z: 0}
   nextTileIds:
   - T25
   - T27
   canPurchase: 1
-  purchasePrice: 5000
+  purchasePrice: 7800
   rentCost: 0
-  baseTraffic: 0
-  consumePower: 1
-  studentRatio: 0.6
-  teacherRatio: 0.1
-  touristRatio: 0.1
-  residentRatio: 0.2
-  competition: 0
-  inspectionRate: 0
+  baseTraffic: 240
+  consumePower: 1.25
+  studentRatio: 0.36
+  teacherRatio: 0.08
+  touristRatio: 0.28
+  residentRatio: 0.28
+  competition: 45
+  inspectionRate: 0.10
   resourceType: 0
+  resourceAmount: 0
   eventPoolId: 

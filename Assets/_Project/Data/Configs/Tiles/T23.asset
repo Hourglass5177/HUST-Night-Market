@@ -15,7 +15,7 @@ MonoBehaviour:
   tileId: T23
   tileName: 
   tileType: 2
-  regionId: REGION_TEST_CAMPUS
+  regionId: REGION_EAST_CAMPUS
   position: {x: 0, y: 0, z: 0}
   nextTileIds:
   - T16
@@ -23,14 +23,14 @@ MonoBehaviour:
   canPurchase: 0
   purchasePrice: 0
   rentCost: 0
-  baseTraffic: 0
-  consumePower: 1
-  studentRatio: 0.6
-  teacherRatio: 0.1
-  touristRatio: 0.1
-  residentRatio: 0.2
-  competition: 0
-  inspectionRate: 0
+  baseTraffic: 80
+  consumePower: 0.90
+  studentRatio: 0.72
+  teacherRatio: 0.12
+  touristRatio: 0.04
+  residentRatio: 0.12
+  competition: 8
+  inspectionRate: 0.04
   resourceType: 5
-  resourceAmount: 1
+  resourceAmount: 2
   eventPoolId: 

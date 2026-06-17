@@ -15,7 +15,7 @@ MonoBehaviour:
   tileId: T36
   tileName: 
   tileType: 2
-  regionId: REGION_TEST_CAMPUS
+  regionId: REGION_YUJIA_LAKE
   position: {x: 0, y: 0, z: 0}
   nextTileIds:
   - T16
@@ -24,14 +24,14 @@ MonoBehaviour:
   canPurchase: 0
   purchasePrice: 0
   rentCost: 0
-  baseTraffic: 0
-  consumePower: 1
-  studentRatio: 0.6
-  teacherRatio: 0.1
-  touristRatio: 0.1
-  residentRatio: 0.2
-  competition: 0
-  inspectionRate: 0
+  baseTraffic: 95
+  consumePower: 0.90
+  studentRatio: 0.40
+  teacherRatio: 0.10
+  touristRatio: 0.40
+  residentRatio: 0.10
+  competition: 6
+  inspectionRate: 0.03
   resourceType: 3
-  resourceAmount: 1
+  resourceAmount: 20
   eventPoolId: 
