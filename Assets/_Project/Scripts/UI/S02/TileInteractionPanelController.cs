@@ -1,7 +1,12 @@
+using CampusNightMarket.Common;
 using CampusNightMarket.Tiles;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class TileInteractionPanelController : MonoBehaviour
 {
@@ -17,6 +22,7 @@ public class TileInteractionPanelController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI typeText;
     [SerializeField] private TextMeshProUGUI ownerText;
+    [SerializeField] private TextMeshProUGUI purchasePriceText;
     [SerializeField] private TextMeshProUGUI studentRatioText;
     [SerializeField] private TextMeshProUGUI teacherRatioText;
     [SerializeField] private TextMeshProUGUI touristRatioText;
@@ -46,29 +52,41 @@ public class TileInteractionPanelController : MonoBehaviour
 
     public void Refresh()
     {
-        TileInteractionInfo info = tileManager != null ? tileManager.CurrentInteraction : null;
-        bool isActive = info != null && tileManager != null && tileManager.IsInteractionActive;
+        TileInteractionInfo activeInfo = tileManager != null ? tileManager.CurrentInteraction : null;
+        bool isActive = activeInfo != null && tileManager != null && tileManager.IsInteractionActive;
+        TileInteractionInfo info = isActive ? activeInfo : GetCurrentPlayerTileInfo();
+
         if (panelRoot != null)
         {
-            panelRoot.SetActive(!hidePanelWhenInactive || isActive);
+            panelRoot.SetActive(!hidePanelWhenInactive || info != null);
         }
 
-        if (!isActive)
+        HideRemovedInfoRows();
+
+        if (info == null)
         {
-            SetText(titleText, "未选择地块");
-            SetText(typeText, "--");
+            SetText(titleText, "名称:--");
+            SetText(typeText, "类型:--");
             SetText(ownerText, "--");
+            SetText(purchasePriceText, "购买价格:--");
             SetCustomerRatioTexts(null);
             SetText(messageText, "移动到地块后显示地块信息。");
             HideActionButtons();
             return;
         }
 
-        SetText(titleText, string.IsNullOrEmpty(info.tileName) ? info.tileId : info.tileName);
-        SetText(typeText, info.tileType.ToString());
+        SetText(titleText, "名称:" + (string.IsNullOrEmpty(info.tileName) ? info.tileId : info.tileName));
+        SetText(typeText, "类型:" + GetTileTypeLabel(info.tileType));
         SetText(ownerText, info.owner.ToString());
+        SetText(purchasePriceText, "购买价格:" + Mathf.Max(0, info.purchasePrice));
         SetCustomerRatioTexts(info);
-        SetText(messageText, info.message);
+        SetText(messageText, isActive ? info.message : "当前所在地块。");
+
+        if (!isActive)
+        {
+            HideActionButtons();
+            return;
+        }
 
         SetButtonVisible(viewInfoButton, info.HasAction(TileActionType.ViewInfo));
         SetButtonVisible(purchaseButton, info.HasAction(TileActionType.PurchaseAndCreateMarket));
@@ -113,12 +131,25 @@ public class TileInteractionPanelController : MonoBehaviour
         Refresh();
     }
 
+    private TileInteractionInfo GetCurrentPlayerTileInfo()
+    {
+        if (tileManager == null ||
+            prototypeBootstrap == null ||
+            prototypeBootstrap.PlayerData == null ||
+            string.IsNullOrEmpty(prototypeBootstrap.PlayerData.currentTileId))
+        {
+            return null;
+        }
+
+        return tileManager.GetInteractionInfo(prototypeBootstrap.PlayerData.currentTileId);
+    }
+
     private void AutoBindMissingReferences()
     {
         Transform root = FindUiRoot();
         if (panelRoot == null)
         {
-            Transform panel = FindChildByName(root, "Right_InfoPanel", "TileInteraction", "information");
+            Transform panel = FindChildByExactName(root, "Right_InfoPanel");
             panelRoot = panel != null ? panel.gameObject : gameObject;
         }
 
@@ -128,8 +159,13 @@ public class TileInteractionPanelController : MonoBehaviour
         if (messageScrollBar == null) messageScrollBar = FindObjectOfType<MessageScrollBar>();
 
         Transform panelRootTransform = panelRoot != null ? panelRoot.transform : transform;
-        if (titleText == null) titleText = FindText(panelRootTransform, "TileTitle", "TileName");
-        if (typeText == null) typeText = FindText(panelRootTransform, "TileType");
+        Transform information = FindChildByExactName(panelRootTransform, "information");
+        Transform priceRoot = FindChildByExactName(panelRootTransform, "Image4");
+
+        if (titleText == null) titleText = FindText(information, "Tilename");
+        if (typeText == null) typeText = FindText(information, "Tiletype");
+        if (purchasePriceText == null) purchasePriceText = FindText(priceRoot, "Tileprice");
+
         if (ownerText == null) ownerText = FindText(panelRootTransform, "TileOwner");
         AutoBindCustomerRatioTexts(panelRootTransform);
         if (messageText == null) messageText = FindText(panelRootTransform, "TileMessage");
@@ -142,6 +178,9 @@ public class TileInteractionPanelController : MonoBehaviour
         if (triggerEventButton == null) triggerEventButton = FindButton(panelRootTransform, "Event");
         if (triggerSpecialButton == null) triggerSpecialButton = FindButton(panelRootTransform, "Special");
         if (completeButton == null) completeButton = FindButton(panelRootTransform, "Complete", "End", "Finish");
+
+        HideRemovedInfoRows();
+        ApplyChineseFontToInfoTexts();
     }
 
     private void BindButtons()
@@ -229,6 +268,101 @@ public class TileInteractionPanelController : MonoBehaviour
         SetText(residentRatioText, "居民 " + FormatPercent(info == null ? -1f : info.residentRatio));
     }
 
+    private void ApplyChineseFontToInfoTexts()
+    {
+#if UNITY_EDITOR
+        TMP_FontAsset chineseFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+            "Assets/_Project/UI/Fonts/SC.asset");
+        if (chineseFont == null)
+        {
+            chineseFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/_Project/UI/Fonts/SourceHanSansSC-VF SDF 1.asset");
+        }
+
+        if (chineseFont == null)
+        {
+            return;
+        }
+
+        ApplyFont(titleText, chineseFont);
+        ApplyFont(typeText, chineseFont);
+        ApplyFont(purchasePriceText, chineseFont);
+        ApplyFont(studentRatioText, chineseFont);
+        ApplyFont(teacherRatioText, chineseFont);
+        ApplyFont(touristRatioText, chineseFont);
+        ApplyFont(residentRatioText, chineseFont);
+        ApplyFont(messageText, chineseFont);
+#endif
+    }
+
+    private void ApplyFont(TextMeshProUGUI target, TMP_FontAsset font)
+    {
+        if (target != null && font != null)
+        {
+            target.font = font;
+        }
+    }
+
+    private string GetTileTypeLabel(TileType tileType)
+    {
+        switch (tileType)
+        {
+            case TileType.Start:
+                return "起点";
+            case TileType.Buildable:
+                return "可购买地块";
+            case TileType.Resource:
+                return "资源地块";
+            case TileType.Shop:
+                return "商店地块";
+            case TileType.Event:
+                return "事件地块";
+            case TileType.Special:
+                return "特殊地块";
+            default:
+                return tileType.ToString();
+        }
+    }
+
+    private void HideRemovedInfoRows()
+    {
+        HideTextsContaining("区域", "月维护佣金", "竞争强度");
+    }
+
+    private void HideTextsContaining(params string[] labels)
+    {
+        if (panelRoot == null || labels == null)
+        {
+            return;
+        }
+
+        TextMeshProUGUI[] texts = panelRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (texts[i] == null || string.IsNullOrEmpty(texts[i].text))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < labels.Length; j++)
+            {
+                if (!string.IsNullOrEmpty(labels[j]) && texts[i].text.Contains(labels[j]))
+                {
+                    Transform row = texts[i].transform.parent;
+                    if (row != null && row != panelRoot.transform)
+                    {
+                        row.gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        texts[i].gameObject.SetActive(false);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     private void AutoBindCustomerRatioTexts(Transform panelRootTransform)
     {
         if (studentRatioText != null &&
@@ -310,9 +444,9 @@ public class TileInteractionPanelController : MonoBehaviour
         return canvas != null ? canvas.transform : null;
     }
 
-    private TextMeshProUGUI FindText(Transform root, params string[] names)
+    private TextMeshProUGUI FindText(Transform root, string name)
     {
-        Transform target = FindChildByName(root, names);
+        Transform target = FindChildByExactName(root, name);
         if (target == null)
         {
             return null;
@@ -332,6 +466,25 @@ public class TileInteractionPanelController : MonoBehaviour
 
         return target.GetComponent<Button>() ??
                target.GetComponentInChildren<Button>(true);
+    }
+
+    private Transform FindChildByExactName(Transform root, string name)
+    {
+        if (root == null || string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i].name == name)
+            {
+                return children[i];
+            }
+        }
+
+        return null;
     }
 
     private Transform FindChildByName(Transform root, params string[] names)

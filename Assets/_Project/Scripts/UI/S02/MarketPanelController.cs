@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using CampusNightMarket.Common;
 using CampusNightMarket.Data;
 using CampusNightMarket.Economy;
 using CampusNightMarket.Market;
+using CampusNightMarket.Tiles;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +18,8 @@ public class MarketPanelController : MonoBehaviour
     [SerializeField] private MarketManager marketManager;
     [SerializeField] private EconomyManager economyManager;
     [SerializeField] private MessageScrollBar messageScrollBar;
+    [SerializeField] private PrototypeBootstrap prototypeBootstrap;
+    [SerializeField] private TileManager tileManager;
 
     [Header("Stall Configs")]
     [SerializeField] private List<StallConfig> stallConfigs = new List<StallConfig>();
@@ -37,6 +41,7 @@ public class MarketPanelController : MonoBehaviour
 
     [Header("Buttons")]
     [SerializeField] private Button closeButton;
+    [SerializeField] private Button purchaseMarketButton;
     [SerializeField] private Button upgradeMarketButton;
 
     private readonly List<StallRowView> stallRows = new List<StallRowView>();
@@ -87,6 +92,7 @@ public class MarketPanelController : MonoBehaviour
         }
 
         RefreshSelectedMarket();
+        RefreshPurchaseMarketButton();
     }
 
     public void SelectMarket(MarketRuntimeData market)
@@ -105,6 +111,41 @@ public class MarketPanelController : MonoBehaviour
 
         bool succeeded = economyManager.UpgradeMarketTransaction(selectedMarket.tileId);
         AddMessage(succeeded ? "Market upgraded: " + selectedMarket.tileId : "Market upgrade failed.", !succeeded);
+        RefreshAll();
+    }
+
+    public void PurchaseCurrentTileMarket()
+    {
+        TileConfig currentTile = GetCurrentTileConfig();
+        if (currentTile == null)
+        {
+            AddMessage("当前地块不能购买夜市。", true);
+            RefreshPurchaseMarketButton();
+            return;
+        }
+
+        if (!CanPurchaseCurrentTile(currentTile, out string reason))
+        {
+            AddMessage(reason, true);
+            RefreshPurchaseMarketButton();
+            return;
+        }
+
+        bool succeeded = economyManager.PurchaseTile(currentTile);
+        if (!succeeded)
+        {
+            AddMessage("购买夜市失败。", true);
+            RefreshPurchaseMarketButton();
+            return;
+        }
+
+        if (tileManager != null)
+        {
+            tileManager.SetTileOwner(currentTile.tileId, OwnerType.Player);
+        }
+
+        selectedMarket = marketManager != null ? marketManager.GetMarket(currentTile.tileId) : null;
+        AddMessage("已购买夜市：" + currentTile.tileId);
         RefreshAll();
     }
 
@@ -218,6 +259,21 @@ public class MarketPanelController : MonoBehaviour
         SetButtonText(upgradeMarketButton, upgradeCost > 0 ? "升级夜市 $" + upgradeCost : "升级夜市");
     }
 
+    private void RefreshPurchaseMarketButton()
+    {
+        if (purchaseMarketButton == null)
+        {
+            return;
+        }
+
+        TileConfig currentTile = GetCurrentTileConfig();
+        bool canPurchase = CanPurchaseCurrentTile(currentTile, out string _);
+        purchaseMarketButton.interactable = canPurchase;
+
+        int price = currentTile == null ? 0 : Mathf.Max(0, currentTile.purchasePrice);
+        SetButtonText(purchaseMarketButton, price > 0 ? "购买夜市 $" + price : "购买夜市");
+    }
+
     private void RefreshStallRows(bool hasMarket)
     {
         EnsureStallRows();
@@ -244,6 +300,8 @@ public class MarketPanelController : MonoBehaviour
         if (marketManager == null) marketManager = FindObjectOfType<MarketManager>();
         if (economyManager == null) economyManager = FindObjectOfType<EconomyManager>();
         if (messageScrollBar == null) messageScrollBar = FindObjectOfType<MessageScrollBar>();
+        if (prototypeBootstrap == null) prototypeBootstrap = FindObjectOfType<PrototypeBootstrap>();
+        if (tileManager == null) tileManager = FindObjectOfType<TileManager>();
 
         Transform panelRootTransform = panelRoot != null ? panelRoot.transform : transform;
         if (marketListContent == null) marketListContent = FindChildByExactName(panelRootTransform, "NightMarketListContent");
@@ -254,6 +312,21 @@ public class MarketPanelController : MonoBehaviour
         if (hygieneText == null) hygieneText = FindText(panelRootTransform, "Txt_MarketHygiene");
         if (closedRoundsText == null) closedRoundsText = FindText(panelRootTransform, "Txt_MarketClosedRounds");
         if (closeButton == null) closeButton = FindButton(panelRootTransform, "Btn_CloseNightMarket");
+        if (purchaseMarketButton == null)
+        {
+            purchaseMarketButton = FindButton(
+                panelRootTransform,
+                "Btn_PurchaseMarket",
+                "Btn_BuyMarket",
+                "Btn_PurchaseNightMarket",
+                "Btn_BuyNightMarket",
+                "PurchaseMarket",
+                "BuyMarket");
+        }
+        if (purchaseMarketButton == null)
+        {
+            purchaseMarketButton = FindButtonByText(panelRootTransform, "购买夜市", "购买");
+        }
         if (upgradeMarketButton == null) upgradeMarketButton = FindButton(panelRootTransform, "Btn_upgradeMarket");
 
         EnsureStallRows();
@@ -272,6 +345,12 @@ public class MarketPanelController : MonoBehaviour
         {
             upgradeMarketButton.onClick.RemoveListener(UpgradeSelectedMarket);
             upgradeMarketButton.onClick.AddListener(UpgradeSelectedMarket);
+        }
+
+        if (purchaseMarketButton != null)
+        {
+            purchaseMarketButton.onClick.RemoveListener(PurchaseCurrentTileMarket);
+            purchaseMarketButton.onClick.AddListener(PurchaseCurrentTileMarket);
         }
     }
 
@@ -362,6 +441,70 @@ public class MarketPanelController : MonoBehaviour
                marketManager.Markets.Contains(market);
     }
 
+    private TileConfig GetCurrentTileConfig()
+    {
+        string tileId = prototypeBootstrap != null && prototypeBootstrap.PlayerData != null
+            ? prototypeBootstrap.PlayerData.currentTileId
+            : string.Empty;
+
+        if (string.IsNullOrEmpty(tileId))
+        {
+            return null;
+        }
+
+        if (prototypeBootstrap != null &&
+            prototypeBootstrap.MapConfigForUI != null &&
+            prototypeBootstrap.MapConfigForUI.tileList != null)
+        {
+            for (int i = 0; i < prototypeBootstrap.MapConfigForUI.tileList.Count; i++)
+            {
+                TileConfig tile = prototypeBootstrap.MapConfigForUI.tileList[i];
+                if (tile != null && tile.tileId == tileId)
+                {
+                    return tile;
+                }
+            }
+        }
+
+        return economyManager == null ? null : economyManager.FindTileConfig(tileId);
+    }
+
+    private bool CanPurchaseCurrentTile(TileConfig tileConfig, out string reason)
+    {
+        reason = string.Empty;
+        if (tileConfig == null)
+        {
+            reason = "当前地块不可用。";
+            return false;
+        }
+
+        if (economyManager == null || marketManager == null)
+        {
+            reason = "夜市系统还没有准备好。";
+            return false;
+        }
+
+        if (tileConfig.tileType != TileType.Buildable)
+        {
+            reason = "当前地块不能建设夜市。";
+            return false;
+        }
+
+        if (!tileConfig.canPurchase)
+        {
+            reason = "当前地块不能购买。";
+            return false;
+        }
+
+        if (tileManager != null && tileManager.GetTileOwner(tileConfig.tileId) != OwnerType.None)
+        {
+            reason = "当前地块已有归属。";
+            return false;
+        }
+
+        return marketManager.CanCreateMarket(tileConfig, out reason);
+    }
+
     private StallRuntimeData FindStall(MarketRuntimeData market, string stallId)
     {
         if (market == null || market.stallList == null || string.IsNullOrEmpty(stallId))
@@ -429,16 +572,80 @@ public class MarketPanelController : MonoBehaviour
                target.GetComponentInChildren<TextMeshProUGUI>(true);
     }
 
-    private Button FindButton(Transform root, string name)
+    private Button FindButton(Transform root, params string[] names)
     {
-        Transform target = FindChildByExactName(root, name);
-        if (target == null)
+        if (names == null)
         {
             return null;
         }
 
-        return target.GetComponent<Button>() ??
-               target.GetComponentInChildren<Button>(true);
+        for (int i = 0; i < names.Length; i++)
+        {
+            Transform target = FindChildByExactName(root, names[i]);
+            if (target == null)
+            {
+                continue;
+            }
+
+            Button button = target.GetComponent<Button>() ??
+                            target.GetComponentInChildren<Button>(true);
+            if (button != null)
+            {
+                return button;
+            }
+        }
+
+        return null;
+    }
+
+    private Button FindButtonByText(Transform root, params string[] labels)
+    {
+        if (root == null || labels == null)
+        {
+            return null;
+        }
+
+        TextMeshProUGUI[] texts = root.GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (texts[i] == null || string.IsNullOrEmpty(texts[i].text))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < labels.Length; j++)
+            {
+                if (!texts[i].text.Contains(labels[j]))
+                {
+                    continue;
+                }
+
+                Button button = GetButtonInParents(texts[i].transform);
+                if (button != null)
+                {
+                    return button;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Button GetButtonInParents(Transform child)
+    {
+        Transform current = child;
+        while (current != null)
+        {
+            Button button = current.GetComponent<Button>();
+            if (button != null)
+            {
+                return button;
+            }
+
+            current = current.parent;
+        }
+
+        return null;
     }
 
     private Transform FindChildByExactName(Transform root, string name)

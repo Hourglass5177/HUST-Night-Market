@@ -142,6 +142,15 @@ public class PrototypeBootstrap : MonoBehaviour
     // 可直接绑定到Unity UI Button的OnClick。
     public void RollDice()
     {
+        if (tileManager != null && tileManager.IsInteractionActive)
+        {
+            tileManager.ExecuteAction(TileActionType.CompleteInteraction, out string completeReason);
+            if (!string.IsNullOrEmpty(completeReason))
+            {
+                statusMessage = completeReason;
+            }
+        }
+
         if (!CanRollDice())
         {
             statusMessage = tileManager != null && tileManager.IsInteractionActive

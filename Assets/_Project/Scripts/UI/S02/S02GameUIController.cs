@@ -5,6 +5,7 @@ using CampusNightMarket.Economy;
 using CampusNightMarket.Market;
 using CampusNightMarket.Player;
 using CampusNightMarket.RandomSystem;
+using CampusNightMarket.Tiles;
 using CampusNightMarket.Turn;
 using TMPro;
 using UnityEngine;
@@ -105,7 +106,12 @@ public class S02GameUIController : MonoBehaviour
 
         if (rollDiceButton != null)
         {
-            rollDiceButton.interactable = prototypeBootstrap != null && prototypeBootstrap.CanRollDiceForUI();
+            bool canAutoFinishInteraction =
+                runtimeData != null &&
+                runtimeData.currentPhase == GamePhase.TileInteraction;
+            rollDiceButton.interactable =
+                prototypeBootstrap != null &&
+                (prototypeBootstrap.CanRollDiceForUI() || canAutoFinishInteraction);
         }
 
         if (continueAfterWinButton != null)
@@ -121,6 +127,12 @@ public class S02GameUIController : MonoBehaviour
         {
             AddMessage("PrototypeBootstrap is missing.", true);
             return;
+        }
+
+        GameRuntimeData runtimeData = gameManager != null ? gameManager.RuntimeData : null;
+        if (runtimeData != null && runtimeData.currentPhase == GamePhase.TileInteraction)
+        {
+            prototypeBootstrap.ExecuteTileActionForUI(TileActionType.CompleteInteraction);
         }
 
         prototypeBootstrap.RollDice();

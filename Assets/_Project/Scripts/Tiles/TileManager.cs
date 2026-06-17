@@ -163,6 +163,7 @@ namespace CampusNightMarket.Tiles
                     : tileConfig.tileName,
                 tileType = tileConfig.tileType,
                 owner = runtimeData.owner,
+                purchasePrice = tileConfig.purchasePrice,
                 studentRatio = tileConfig.studentRatio,
                 teacherRatio = tileConfig.teacherRatio,
                 touristRatio = tileConfig.touristRatio,
