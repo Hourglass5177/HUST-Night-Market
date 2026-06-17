@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Sandbox/TestScenes/S02_Game_HUST_test1.unity
     guid: f88fcaae4c2e9c14d8806545908455d4
+  - enabled: 1
+    path: Assets/Sandbox/TestScenes/S03_Game_square_test1.unity
+    guid: 78d9e82a2f176e54dad0d841a02b2095
   m_configObjects: {}

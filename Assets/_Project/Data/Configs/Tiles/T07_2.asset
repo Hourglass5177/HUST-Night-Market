@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9969f18e44de4bd45a592f54a959c7b9, type: 3}
+  m_Name: T07_2
+  m_EditorClassIdentifier: 
+  tileId: T07_2
+  tileName: 
+  tileType: 4
+  regionId: REGION_SQUARE_TEST
+  position: {x: 16, y: 0, z: 8}
+  nextTileIds:
+  - T06_2
+  - T08_2
+  canPurchase: 0
+  purchasePrice: 2200
+  rentCost: 0
+  baseTraffic: 95
+  consumePower: 0.95
+  studentRatio: 0.74
+  teacherRatio: 0.12
+  touristRatio: 0.04
+  residentRatio: 0.1
+  competition: 10
+  inspectionRate: 0.05
+  resourceType: 0
+  resourceAmount: 0
+  eventPoolId: EVENT_POOL_ARRIVE

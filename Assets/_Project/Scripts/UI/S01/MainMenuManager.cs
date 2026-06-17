@@ -9,6 +9,7 @@ public class MainMenuManager : MonoBehaviour
 {
     public GameObject loanPopup;
     [SerializeField] private string gameSceneName = "S02_Game_HUST_test1";
+    [SerializeField] private string gamePlusSceneName = "S03_Game_square_test1";
 
     private void Awake()
     {
@@ -34,6 +35,12 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene(gameSceneName);
     }
 
+    public void StartGamePlus()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(gamePlusSceneName);
+    }
+
     public void QuitGame()
     {
 #if UNITY_EDITOR
@@ -52,6 +59,7 @@ public class MainMenuManager : MonoBehaviour
         }
 
         BindButton(FindButtonByExactName(root, "btn_NewGame"), StartGame);
+        BindButton(FindButtonByExactName(root, "btn_NewGame+"), StartGamePlus);
         BindButton(FindButtonByExactName(root, "btn_QuitGame"), QuitGame);
     }
 
