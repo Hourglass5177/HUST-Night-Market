@@ -129,6 +129,7 @@ public class PrototypeBootstrap : MonoBehaviour
         SubscribeTileManagerEvents();
         RefreshAllTileOwners();
         playerMover.PlaceAt(mapManager, playerData.currentTileId);
+        EnsurePlayerCameraController();
         currentMoveStepBudget = 0;
         hasActiveMoveBudget = false;
         turnManager.BeginFirstDay();
@@ -476,6 +477,31 @@ public class PrototypeBootstrap : MonoBehaviour
         {
             tileManager.SetEconomyManager(economyManager);
         }
+    }
+
+    // 自动为主相机安装跟随缩放控制器，避免每个测试场景重复手工配置。
+    private void EnsurePlayerCameraController()
+    {
+        if (playerMover == null)
+        {
+            return;
+        }
+
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            Debug.LogWarning("未找到标记为 MainCamera 的场景相机，无法启用棋子视角缩放。", this);
+            return;
+        }
+
+        PlayerCameraController cameraController =
+            mainCamera.GetComponent<PlayerCameraController>();
+        if (cameraController == null)
+        {
+            cameraController = mainCamera.gameObject.AddComponent<PlayerCameraController>();
+        }
+
+        cameraController.SetTarget(playerMover.transform);
     }
 
     private void BindRandomSystems()
