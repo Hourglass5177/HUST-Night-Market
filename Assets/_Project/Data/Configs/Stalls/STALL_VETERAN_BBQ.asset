@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_VETERAN_BBQ
   stallName: 老兵烧烤
   stallType: 1
-  buildCost: 2000
-  upgradeCost: 1000
-  basePrice: 3
-  baseAttraction: 4
+  buildCost: 4000
+  upgradeCost: 2000
+  basePrice: 25
+  baseAttraction: 25
   lowFoodCost: 2
   highFoodCost: 1
   hygiene: 2

@@ -32,7 +32,7 @@ public class PrototypeBootstrap : MonoBehaviour
 
     [Header("原型配置")]
     [SerializeField] private MapConfig mapConfig;
-    [SerializeField] private int startingEnergy = 10;
+    [SerializeField] private int startingEnergy = 60;
     [SerializeField] private bool initializeOnStart = true;
     [SerializeField] private bool showDebugGui = true;
     [FormerlySerializedAs("autoAdvancePrototypeTurn")]

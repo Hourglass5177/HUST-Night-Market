@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_HOT_DRY_NOODLES
   stallName: 老武汉热干面
   stallType: 0
-  buildCost: 500
-  upgradeCost: 300
-  basePrice: 2
-  baseAttraction: 2
+  buildCost: 1500
+  upgradeCost: 800
+  basePrice: 15
+  baseAttraction: 12
   lowFoodCost: 1
   highFoodCost: 0
   hygiene: 2

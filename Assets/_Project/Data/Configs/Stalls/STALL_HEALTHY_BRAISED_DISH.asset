@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_HEALTHY_BRAISED_DISH
   stallName: 健康卤菜
   stallType: 0
-  buildCost: 500
-  upgradeCost: 300
-  basePrice: 2
-  baseAttraction: 2
+  buildCost: 1500
+  upgradeCost: 800
+  basePrice: 12
+  baseAttraction: 10
   lowFoodCost: 1
   highFoodCost: 1
   hygiene: 3

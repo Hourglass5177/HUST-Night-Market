@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_WANGZHE_FRIED_RICE
   stallName: 王者炒饭
   stallType: 0
-  buildCost: 500
-  upgradeCost: 300
-  basePrice: 1
-  baseAttraction: 1
+  buildCost: 1500
+  upgradeCost: 800
+  basePrice: 10
+  baseAttraction: 8
   lowFoodCost: 1
   highFoodCost: 0
   hygiene: 2

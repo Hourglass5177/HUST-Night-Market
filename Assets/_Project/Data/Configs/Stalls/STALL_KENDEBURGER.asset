@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_KENDEBURGER
   stallName: 肯德堡
   stallType: 2
-  buildCost: 5000
-  upgradeCost: 2500
-  basePrice: 5
-  baseAttraction: 4
+  buildCost: 8000
+  upgradeCost: 4000
+  basePrice: 45
+  baseAttraction: 40
   lowFoodCost: 0
   highFoodCost: 2
   hygiene: 5

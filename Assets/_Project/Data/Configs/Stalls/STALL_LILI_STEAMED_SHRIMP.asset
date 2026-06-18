@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_LILI_STEAMED_SHRIMP
   stallName: 丽丽蒸虾
   stallType: 2
-  buildCost: 5000
-  upgradeCost: 2500
-  basePrice: 4
-  baseAttraction: 5
+  buildCost: 8000
+  upgradeCost: 4000
+  basePrice: 40
+  baseAttraction: 50
   lowFoodCost: 1
   highFoodCost: 2
   hygiene: 3

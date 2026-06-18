@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_BUDGET_SWEET_SOUP
   stallName: 平价糖水
   stallType: 1
-  buildCost: 2000
-  upgradeCost: 1000
-  basePrice: 3
-  baseAttraction: 2
+  buildCost: 4000
+  upgradeCost: 2000
+  basePrice: 20
+  baseAttraction: 15
   lowFoodCost: 1
   highFoodCost: 0
   hygiene: 3

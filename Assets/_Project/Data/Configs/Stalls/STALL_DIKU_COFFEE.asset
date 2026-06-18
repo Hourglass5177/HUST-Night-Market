@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_DIKU_COFFEE
   stallName: 迪库咖啡
   stallType: 2
-  buildCost: 5000
-  upgradeCost: 2500
-  basePrice: 3
-  baseAttraction: 3
+  buildCost: 8000
+  upgradeCost: 4000
+  basePrice: 35
+  baseAttraction: 30
   lowFoodCost: 1
   highFoodCost: 0
   hygiene: 4

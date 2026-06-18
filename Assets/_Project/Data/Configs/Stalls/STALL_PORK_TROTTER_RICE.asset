@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_PORK_TROTTER_RICE
   stallName: 正宗猪脚饭
   stallType: 1
-  buildCost: 2000
-  upgradeCost: 1000
-  basePrice: 3
-  baseAttraction: 3
+  buildCost: 4000
+  upgradeCost: 2000
+  basePrice: 22
+  baseAttraction: 20
   lowFoodCost: 1
   highFoodCost: 1
   hygiene: 3

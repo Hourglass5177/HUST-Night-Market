@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_LIUJIE_FRIED_SKEWERS
   stallName: 刘姐炸串
   stallType: 0
-  buildCost: 500
-  upgradeCost: 300
-  basePrice: 1
-  baseAttraction: 2
+  buildCost: 1500
+  upgradeCost: 800
+  basePrice: 10
+  baseAttraction: 10
   lowFoodCost: 1
   highFoodCost: 0
   hygiene: 1

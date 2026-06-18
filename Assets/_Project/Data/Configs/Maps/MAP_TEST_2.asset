@@ -16,9 +16,9 @@ MonoBehaviour:
   mapName: "\u6D4B\u8BD5\u65B9\u5F62\u5730\u56FE"
   startTileId: T01_2
   maxDay: 30
-  initialMoney: 3000
-  loanAmount: 7000
-  victoryMultiplier: 10
+  initialMoney: 10000
+  loanAmount: 15000
+  victoryMultiplier: 5
   interestInterval: 7
   interestRate: 0.1
   tileList:

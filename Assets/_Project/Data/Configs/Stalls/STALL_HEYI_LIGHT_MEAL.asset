@@ -15,10 +15,10 @@ MonoBehaviour:
   stallId: STALL_HEYI_LIGHT_MEAL
   stallName: 禾逸轻食
   stallType: 1
-  buildCost: 2000
-  upgradeCost: 1000
-  basePrice: 3
-  baseAttraction: 3
+  buildCost: 4000
+  upgradeCost: 2000
+  basePrice: 20
+  baseAttraction: 18
   lowFoodCost: 1
   highFoodCost: 2
   hygiene: 4

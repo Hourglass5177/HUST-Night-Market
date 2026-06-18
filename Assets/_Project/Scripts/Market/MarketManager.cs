@@ -19,9 +19,9 @@ namespace CampusNightMarket.Market
         [SerializeField] private List<MarketLevelRule> levelRules = new List<MarketLevelRule>
         {
             new MarketLevelRule(1, 1, 0, "基础夜市"),
-            new MarketLevelRule(2, 2, 2000, "客流承载+20%"),
-            new MarketLevelRule(3, 3, 5000, "解锁高端摊位"),
-            new MarketLevelRule(4, 4, 10000, "口碑加成")
+            new MarketLevelRule(2, 2, 6000, "客流承载+20%"),
+            new MarketLevelRule(3, 3, 15000, "解锁高端摊位"),
+            new MarketLevelRule(4, 4, 30000, "口碑加成")
         };
 
         // 当前全部夜市数据，供 UI 和结算系统读取。

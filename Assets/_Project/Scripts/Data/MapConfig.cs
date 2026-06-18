@@ -16,11 +16,11 @@ namespace CampusNightMarket.Data
         // 限定天数，超过后未达成目标则失败。
         public int maxDay = 30;
         // 开局自有资金。
-        public int initialMoney = 3000;
+        public int initialMoney = 10000;
         // 开局贷款金额。
-        public int loanAmount = 7000;
+        public int loanAmount = 15000;
         // 胜利目标倍率，用于计算目标资金。
-        public float victoryMultiplier = 10f;
+        public float victoryMultiplier = 5f;
         // 利息结算周期，单位为天。
         public int interestInterval = 7;
         // 每期利息率。
