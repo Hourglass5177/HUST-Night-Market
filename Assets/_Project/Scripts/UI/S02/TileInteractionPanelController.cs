@@ -181,6 +181,7 @@ public class TileInteractionPanelController : MonoBehaviour
 
         HideRemovedInfoRows();
         ApplyChineseFontToInfoTexts();
+        SharpenInfoPanelTexts();
     }
 
     private void BindButtons()
@@ -295,6 +296,36 @@ public class TileInteractionPanelController : MonoBehaviour
         {
             target.font = font;
         }
+    }
+
+    private void SharpenInfoPanelTexts()
+    {
+        if (panelRoot == null)
+        {
+            return;
+        }
+
+        TextMeshProUGUI[] texts = panelRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            SharpenText(texts[i]);
+        }
+    }
+
+    private void SharpenText(TextMeshProUGUI text)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.fontSize = Mathf.Max(text.fontSize, 20f);
+        text.fontWeight = FontWeight.Bold;
+        text.fontStyle |= FontStyles.Bold;
+        text.extraPadding = true;
+        text.isTextObjectScaleStatic = true;
+        text.UpdateMeshPadding();
+        text.SetAllDirty();
     }
 
     private TMP_FontAsset LoadConfiguredChineseFont()
