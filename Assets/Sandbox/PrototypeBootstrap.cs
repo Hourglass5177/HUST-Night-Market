@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CampusNightMarket.Audio;
 using CampusNightMarket.Common;
 using CampusNightMarket.Core;
 using CampusNightMarket.Data;
@@ -130,6 +131,7 @@ public class PrototypeBootstrap : MonoBehaviour
         RefreshAllTileOwners();
         playerMover.PlaceAt(mapManager, playerData.currentTileId);
         EnsurePlayerCameraController();
+        EnsureLevelBgm();
         currentMoveStepBudget = 0;
         hasActiveMoveBudget = false;
         turnManager.BeginFirstDay();
@@ -502,6 +504,18 @@ public class PrototypeBootstrap : MonoBehaviour
         }
 
         cameraController.SetTarget(playerMover.transform);
+    }
+
+    // 仅在关卡入口对象上创建BGM播放器；返回主菜单后会随场景销毁并停止。
+    private void EnsureLevelBgm()
+    {
+        LevelBgmPlayer bgmPlayer = GetComponent<LevelBgmPlayer>();
+        if (bgmPlayer == null)
+        {
+            bgmPlayer = gameObject.AddComponent<LevelBgmPlayer>();
+        }
+
+        bgmPlayer.Play();
     }
 
     private void BindRandomSystems()
